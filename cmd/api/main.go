@@ -2,11 +2,13 @@ package main
 
 import (
 	"log"
+
+	"github.com/puremike/social-go/internal/env"
 )
 
 func main () {
 	cfg := config {
-		port: ":5100",
+		port: env.GetPort(),
 	}
 
 	app := &application{
