@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/puremike/social-go/internal/env"
+	"github.com/puremike/social-go/pkg/env"
 )
 
 func main () {
