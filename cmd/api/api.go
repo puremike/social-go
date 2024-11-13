@@ -7,7 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/puremike/social-go/pkg/store"
+	"github.com/puremike/social-go/internal/store"
 )
 
 type application struct {
