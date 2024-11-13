@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/puremike/social-go/pkg/env"
+	"github.com/puremike/social-go/pkg/store"
 )
 
 func main () {
@@ -11,9 +12,13 @@ func main () {
 		port: env.GetPort(),
 	}
 
+	str := store.NewStorage(nil)
+
 	app := &application{
-        config: cfg,
+        config: cfg, 
+		store: str,
     }
+	
 	mux := app.mount()
 	log.Fatal(app.start(mux))
 }
