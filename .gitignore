@@ -3,6 +3,8 @@ tmp
 .envrc
 bin/
 
+docker-compose.yaml
+
 # Logs
 logs
 *.log

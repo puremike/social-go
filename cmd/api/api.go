@@ -17,6 +17,13 @@ type application struct {
 
 type config struct {
 	port string
+	dbconfig dbconfig
+}
+
+type dbconfig struct {
+	Addr string
+	maxOpenConns, maxIdleConns int
+	maxIdleTime time.Duration
 }
 
 func (app *application) mount() http.Handler {
