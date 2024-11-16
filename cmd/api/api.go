@@ -18,6 +18,7 @@ type application struct {
 type config struct {
 	port string
 	dbconfig dbconfig
+	environment string
 }
 
 type dbconfig struct {
@@ -35,6 +36,9 @@ func (app *application) mount() http.Handler {
   	r.Use(middleware.Recoverer)
 	r.Route("/v1", func (r chi.Router) {
 		r.Get("/health", app.health)
+		r.Route("/posts", func (r chi.Router) {
+			r.Post("/", app.CreatePost)
+		})
 	})
 
 	return r

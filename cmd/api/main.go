@@ -21,6 +21,7 @@ func main () {
             maxIdleConns: 5,
             maxIdleTime:  15 * time.Minute, // 15 minutes
 		},
+		environment: "development",
 	}
 	db, err := db.NewDB(cfg.dbconfig.Addr, cfg.dbconfig.maxOpenConns, cfg.dbconfig.maxIdleConns, cfg.dbconfig.maxIdleTime)
 	if err != nil {
