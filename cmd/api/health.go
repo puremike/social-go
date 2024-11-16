@@ -10,7 +10,7 @@ func (app *application) health(w http.ResponseWriter, r *http.Request) {
 		"environment" : app.config.environment,
 	}
 	if  err := writeJSON(w, http.StatusOK, data); err != nil {
-		writeJSONError(w, http.StatusInternalServerError, "Failed to write JSON response")
+		app.internalServer(w, r, err)
         return   
 	}
 }

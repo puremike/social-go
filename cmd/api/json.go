@@ -23,11 +23,11 @@ func writeJSON(w http.ResponseWriter, status int, data any) error {
 	return encoded
 }
 
-func writeJSONError (w http.ResponseWriter, status int, data string) error {
+func writeJSONError (w http.ResponseWriter, status int, data any) error {
 	type errFmt struct {
-		Error string `json:"error"`
+		Error any `json:"error"`
 	}
 
-	return writeJSON(w, status, &errFmt{Error : data} )
+	return writeJSON(w, status, &errFmt{data} )
 
 }

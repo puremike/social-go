@@ -20,7 +20,7 @@ func (app *application) CreatePost(w http.ResponseWriter, r *http.Request) {
 	var payload postField
 
 	if err := readJSON(w, r, &payload); err != nil {
-        writeJSONError(w, http.StatusBadRequest, "Invalid request payload")
+        app.badRequest(w, r, err)
         return
     }
 	post := &model.PostModel{
@@ -33,13 +33,13 @@ func (app *application) CreatePost(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	// Create post
 	if err := app.store.Posts.Create(ctx, post); err != nil {
-		writeJSONError(w, http.StatusInternalServerError, err.Error())
+		app.internalServer(w, r, err)
 		return
 	}
 
 	// Response to return
 	if err := writeJSON(w, http.StatusCreated, post); err != nil {
-		writeJSONError(w, http.StatusInternalServerError, err.Error())
+		app.internalServer(w, r, err)
 		return
 	}
 }
@@ -47,7 +47,7 @@ func (app *application) CreatePost(w http.ResponseWriter, r *http.Request) {
 func (app *application) getPostById(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
-		writeJSONError(w, http.StatusInternalServerError, "Invalid post ID")
+		app.internalServer(w, r, err)
         return
 	}
 
@@ -56,14 +56,14 @@ func (app *application) getPostById(w http.ResponseWriter, r *http.Request) {
 	post, err := app.store.Posts.GetPostByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, store.ErrPostNotFound) {
-			writeJSONError(w, http.StatusBadRequest, err.Error())
+			app.badRequest(w, r, err)
 			return
 		}
 		writeJSONError(w, http.StatusInternalServerError, err.Error())
 	}
 
 	if err := writeJSON(w, http.StatusCreated, post); err != nil {
-		writeJSONError(w, http.StatusInternalServerError, err.Error())
+		app.internalServer(w, r, err)
         return
 	}
 }
