@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/puremike/social-go/internal/model"
 )
@@ -13,8 +14,11 @@ type Storage struct {
 	}
 	Posts interface {
 		Create(context.Context, *model.PostModel) error
+		GetPostByID(context.Context, int) (*model.PostModel, error)
 	}
 }
+
+var ErrPostNotFound = errors.New("post not found")
 
 func NewStorage(db *sql.DB) Storage {
 	str := Storage {

@@ -1,9 +1,13 @@
 package main
 
 import (
+	"errors"
 	"net/http"
+	"strconv"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/puremike/social-go/internal/model"
+	"github.com/puremike/social-go/internal/store"
 )
 
 type postField struct {
@@ -19,7 +23,6 @@ func (app *application) CreatePost(w http.ResponseWriter, r *http.Request) {
         writeJSONError(w, http.StatusBadRequest, "Invalid request payload")
         return
     }
-
 	post := &model.PostModel{
 		Content : payload.Content,
 		Title : payload.Title,
@@ -38,5 +41,29 @@ func (app *application) CreatePost(w http.ResponseWriter, r *http.Request) {
 	if err := writeJSON(w, http.StatusCreated, post); err != nil {
 		writeJSONError(w, http.StatusInternalServerError, err.Error())
 		return
+	}
+}
+
+func (app *application) getPostById(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		writeJSONError(w, http.StatusInternalServerError, "Invalid post ID")
+        return
+	}
+
+	ctx := r.Context()
+
+	post, err := app.store.Posts.GetPostByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, store.ErrPostNotFound) {
+			writeJSONError(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		writeJSONError(w, http.StatusInternalServerError, err.Error())
+	}
+
+	if err := writeJSON(w, http.StatusCreated, post); err != nil {
+		writeJSONError(w, http.StatusInternalServerError, err.Error())
+        return
 	}
 }

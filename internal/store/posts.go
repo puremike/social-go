@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/lib/pq"
 	"github.com/puremike/social-go/internal/model"
@@ -21,4 +22,20 @@ func (s *PostStore) Create(ctx context.Context, post *model.PostModel) error {
 	}
 	
 	return nil
+}
+
+func (s *PostStore) GetPostByID(ctx context.Context, id int) (*model.PostModel, error) {
+	query := `SELECT id, title, user_id, tags, created_at, updated_at FROM posts WHERE id = $1`
+	post := &model.PostModel{}
+
+	err := s.db.QueryRowContext(ctx, query, id).Scan(&post.ID, &post.Content, &post.UserID, pq.Array(&post.Tags), &post.CreatedAt, &post.UpdatedAt)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrPostNotFound
+		}
+		return nil, err
+	}
+
+	return post, nil
 }
