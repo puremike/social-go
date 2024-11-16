@@ -3,7 +3,15 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/go-playground/validator/v10"
 )
+
+var Validate *validator.Validate 
+
+func init() {
+	Validate = validator.New(validator.WithRequiredStructEnabled())
+}
 
 func readJSON(w http.ResponseWriter, r *http.Request, data any) error {
 	maxSizeDataTORead := 1_048_576
