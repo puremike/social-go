@@ -67,6 +67,14 @@ func (app *application) getPostById(w http.ResponseWriter, r *http.Request) {
 		writeJSONError(w, http.StatusInternalServerError, err.Error())
 	}
 
+	comments, err := app.store.Comments.GetCommentsByPostID(ctx, id)
+	if err != nil {
+		app.internalServer(w, r, err)
+	}
+
+	// post.Comments = comments
+	post.Comments = comments
+
 	if err := writeJSON(w, http.StatusCreated, post); err != nil {
 		app.internalServer(w, r, err)
         return

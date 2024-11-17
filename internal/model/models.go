@@ -8,6 +8,7 @@ type PostModel struct {
 	Tags []string	`json:"tags"`
 	CreatedAt string	`json:"created_at"`
 	UpdatedAt string	`json:"updated_at"`
+	Comments []CommentModel `json:"comments"`
 }
 
 type UserModel struct {
@@ -16,4 +17,14 @@ type UserModel struct {
 	Email string `json:"email"`
 	Password string `json:"-"`
 	CreatedAt string `json:"created_at"`
+}
+
+
+type CommentModel struct {
+	ID        int64  `json:"id"`
+	PostID    int64  `json:"post_id"`
+	UserID    int64  `json:"user_id"`
+	Content   string `json:"content"`
+	CreatedAt string `json:"created_at"`
+	User UserModel `json:"user"`
 }

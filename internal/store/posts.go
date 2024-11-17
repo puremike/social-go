@@ -38,4 +38,5 @@ func (s *PostStore) GetPostByID(ctx context.Context, id int) (*model.PostModel, 
 	}
 
 	return post, nil
+
 }
