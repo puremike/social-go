@@ -16,8 +16,8 @@ type Storage struct {
 		Create(context.Context, *model.PostModel) error
 		GetPostByID(context.Context, int) (*model.PostModel, error)
 		GetAllPosts(context.Context) ([]model.PostModel, error)
-		DeletePostByID(context.Context, int) (string, error)
-		DeleteAllPosts(context.Context) (string, error)
+		DeletePostByID(context.Context, int) error
+		DeleteAllPosts(context.Context) error
 		UpdatePost(context.Context, int, *model.PostModel) error
 	}
 	Comments interface {
@@ -36,3 +36,4 @@ func NewStorage(db *sql.DB) Storage {
 
 	return str
 }
+

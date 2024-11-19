@@ -16,10 +16,10 @@ type postField struct {
 	UserID int	`json:"user_id"`
 	Tags []string	`json:"tags"`
 }
+
+var payload postField
 	
 func (app *application) createPost(w http.ResponseWriter, r *http.Request) {
-	payload := postField{}
-
 	if err := readJSON(w, r, &payload); err != nil {
         app.badRequest(w, r, err)
         return
@@ -105,14 +105,12 @@ func (app *application) deletePostByID(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 
-	message, err := app.store.Posts.DeletePostByID(ctx, id)
-	if err != nil {
-		if errors.Is(err, store.ErrPostNotFound) {
-			app.notFound(w, r, err)
-			return
-		}
-		writeJSONError(w, http.StatusInternalServerError, err.Error())
+	if err := app.store.Posts.DeletePostByID(ctx, id); err != nil {
+		app.badRequest(w, r, err)
+		return
 	}
+
+	message := "Post deleted successfully"
 
 	if err := writeJSON(w, http.StatusCreated, message); err != nil {
 		app.internalServer(w, r, err)
@@ -122,11 +120,12 @@ func (app *application) deletePostByID(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) deleteAllPosts(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	message, err := app.store.Posts.DeleteAllPosts(ctx)
-
-	if err != nil {
+	if err := app.store.Posts.DeleteAllPosts(ctx); err != nil {
 		app.badRequest(w, r, err)
+		return
 	}
+
+	message := "All posts have been deleted successfully"
 	
 	if err := writeJSON(w, http.StatusOK, message); err!= nil {
         app.internalServer(w, r, err)
@@ -135,10 +134,6 @@ func (app *application) deleteAllPosts(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) updatePost(w http.ResponseWriter, r *http.Request) {
-
-	payload := postField{}
-
-
 	if err := readJSON(w, r, &payload); err != nil {
         app.badRequest(w, r, err)
         return

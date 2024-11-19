@@ -68,35 +68,36 @@ func (s *PostStore) GetPostByID(ctx context.Context, id int) (*model.PostModel, 
 
 }
 
-func (s *PostStore) DeletePostByID(ctx context.Context, id int) (string, error) {
-	query := `DELETE FROM posts WHERE id = $1 RETURNING id, title`
+func (s *PostStore) DeletePostByID(ctx context.Context, id int) error {
+	query := `DELETE FROM posts WHERE id = $1`
 
-	post := &model.PostModel{}
-	
-	err := s.db.QueryRowContext(ctx, query, id).Scan(&post.ID, &post.Title)
+	result, err := s.db.ExecContext(ctx, query, id)
 
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-            return "", ErrPostNotFound
-        }
-        return "", err
+            return fmt.Errorf("failed to delete post with ID %d: %w", id, err)
 	}
 
-	message := fmt.Sprintf("The post with the id (%d) and title (%s) has been deleted successfully", post.ID, post.Title)
+	// check if any rows were affected
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("error checking rows affected: %w", err)
+	}
 
-	return message, nil 
+	if rowsAffected == 0 {
+		return fmt.Errorf("no post found with ID %d", id)
+	}
+
+	return nil
 }
 
-func (s *PostStore) DeleteAllPosts(ctx context.Context) (string, error) {
+func (s *PostStore) DeleteAllPosts(ctx context.Context) error {
 	query := `DELETE FROM posts`
 	_, err := s.db.ExecContext(ctx, query)
 	
     if err != nil {
-		return "", errors.New("unable to delete posts")
+		return fmt.Errorf("unable to delete posts: %w", err)
     }	
-	message := "All posts have been deleted successfully"
-	
-	return message, nil
+	return nil
 }
 
 func (s *PostStore) UpdatePost(ctx context.Context, id int, post *model.PostModel) error {
