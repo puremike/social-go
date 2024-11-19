@@ -44,7 +44,7 @@ func (app *application) createPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Response to return
-	if err := writeJSON(w, http.StatusCreated, post); err != nil {
+	if err := jsonResponse(w, http.StatusCreated, post); err != nil {
 		app.internalServer(w, r, err)
 		return
 	}
@@ -59,7 +59,7 @@ func (app *application) getAllPosts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := writeJSON(w, http.StatusCreated, posts); err != nil {
+	if err := jsonResponse(w, http.StatusCreated, posts); err != nil {
 		app.internalServer(w, r, err)
         return
 	}
@@ -91,7 +91,7 @@ func (app *application) getPostById(w http.ResponseWriter, r *http.Request) {
 	// post.Comments = comments
 	post.Comments = comments
 
-	if err := writeJSON(w, http.StatusCreated, post); err != nil {
+	if err := jsonResponse(w, http.StatusCreated, post); err != nil {
 		app.internalServer(w, r, err)
         return
 	}
@@ -112,7 +112,7 @@ func (app *application) deletePostByID(w http.ResponseWriter, r *http.Request) {
 
 	message := "Post deleted successfully"
 
-	if err := writeJSON(w, http.StatusCreated, message); err != nil {
+	if err := jsonResponse(w, http.StatusCreated, message); err != nil {
 		app.internalServer(w, r, err)
 		return
 	}
@@ -127,7 +127,7 @@ func (app *application) deleteAllPosts(w http.ResponseWriter, r *http.Request) {
 
 	message := "All posts have been deleted successfully"
 	
-	if err := writeJSON(w, http.StatusOK, message); err!= nil {
+	if err := jsonResponse(w, http.StatusOK, message); err!= nil {
         app.internalServer(w, r, err)
         return
     }
@@ -162,7 +162,7 @@ func (app *application) updatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := writeJSON(w, http.StatusOK, post); err != nil {
+	if err := jsonResponse(w, http.StatusOK, post); err != nil {
 		app.internalServer(w, r, err)
 		return
 	}

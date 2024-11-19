@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/puremike/social-go/internal/model"
 )
@@ -25,7 +26,10 @@ type Storage struct {
     }
 }
 
-var ErrPostNotFound = errors.New("post not found")
+var (
+	ErrPostNotFound = errors.New("post not found")
+	QueryTimeoutDuration = 5 * time.Second
+)
 
 func NewStorage(db *sql.DB) Storage {
 	str := Storage {

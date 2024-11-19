@@ -16,6 +16,10 @@ type PostStore struct {
 
 func (s *PostStore) Create(ctx context.Context, post *model.PostModel) error {
 	query := `INSERT INTO posts (content, title, user_id, tags) VALUES ($1, $2, $3, $4) RETURNING id, created_at, updated_at`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel() 
+	
 	err := s.db.QueryRowContext(ctx, query, post.Content, post.Title, post.UserID, pq.Array(post.Tags)).Scan(&post.ID, &post.CreatedAt, &post.UpdatedAt)
 
 	if err != nil {
@@ -29,6 +33,9 @@ func (s *PostStore) GetAllPosts(ctx context.Context) ([]model.PostModel, error) 
 	query := `SELECT id, content, title, user_id, tags, created_at, updated_at FROM posts;`
 
 	posts := []model.PostModel{}
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel() 
 
 	rows, err := s.db.QueryContext(ctx, query)
 	if err != nil {
@@ -55,6 +62,9 @@ func (s *PostStore) GetPostByID(ctx context.Context, id int) (*model.PostModel, 
 	query := `SELECT id, content, title, user_id, tags, created_at, updated_at FROM posts WHERE id = $1`
 	post := &model.PostModel{}
 
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel() 
+
 	err := s.db.QueryRowContext(ctx, query, id).Scan(&post.ID, &post.Content, &post.Title, &post.UserID, pq.Array(&post.Tags), &post.CreatedAt, &post.UpdatedAt)
 
 	if err != nil {
@@ -70,6 +80,9 @@ func (s *PostStore) GetPostByID(ctx context.Context, id int) (*model.PostModel, 
 
 func (s *PostStore) DeletePostByID(ctx context.Context, id int) error {
 	query := `DELETE FROM posts WHERE id = $1`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel() 
 
 	result, err := s.db.ExecContext(ctx, query, id)
 
@@ -102,6 +115,9 @@ func (s *PostStore) DeleteAllPosts(ctx context.Context) error {
 
 func (s *PostStore) UpdatePost(ctx context.Context, id int, post *model.PostModel) error {
 	query := `UPDATE posts SET title = $2, content = $3, tags = $4 WHERE id = $1 RETURNING id, title, content, user_id, tags, created_at, updated_at;`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel() 
 	
 	err := s.db.QueryRowContext(ctx, query, id, post.Title, post.Content, pq.Array(post.Tags)).Scan(&post.ID, &post.Title, &post.Content, &post.UserID, pq.Array(&post.Tags), &post.CreatedAt, &post.UpdatedAt)
 
