@@ -7,7 +7,7 @@ import (
 
 
 func (app *application) internalServer(w http.ResponseWriter, r *http.Request, err error) {
-
+	
 	data := map[string]string {
         "status" : "error",
         "message" : "Internal Server Error",

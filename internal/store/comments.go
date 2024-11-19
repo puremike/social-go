@@ -12,14 +12,14 @@ type CommentStore struct {
 	db *sql.DB
 }
 
-func (s *CommentStore) GetCommentsByPostID(ctx context.Context, postID int) ([]model.CommentModel, error) {
+func (s *CommentStore) GetCommentsByPostID(ctx context.Context, id int) ([]model.CommentModel, error) {
 
 	query := `SELECT c.id, c.post_id, c.user_id, c.content, c.created_at, users.id, users.username FROM comments c
 	JOIN users on users.id = c.user_id 
 	WHERE c.post_id = $1 
 	ORDER BY c.created_at DESC`
 
-	rows, err := s.db.QueryContext(ctx, query, postID)
+	rows, err := s.db.QueryContext(ctx, query, id)
 	if err != nil {
 		return nil, err
 	}
