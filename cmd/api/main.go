@@ -19,7 +19,7 @@ func main () {
 			Addr:     envData.DB_URI,
             maxOpenConns: 10,
             maxIdleConns: 5,
-            maxIdleTime:  15 * time.Minute, // 15 minutes
+            maxIdleTime:  15 * time.Minute, // 15 minutes /
 		},
 		environment: "development",
 	}

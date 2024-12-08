@@ -36,7 +36,7 @@ func writeJSONError (w http.ResponseWriter, status int, data any) error {
 		Error any `json:"error"`
 	}
 
-	return writeJSON(w, status, &errFmt{data} )
+	return writeJSON(w, status, &errFmt{Error: data} )
 
 }
 
