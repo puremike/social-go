@@ -12,31 +12,31 @@ import (
 
 type application struct {
 	config config
-	store store.Storage
+	store  store.Storage
 }
 
 type config struct {
-	port string
-	dbconfig dbconfig
+	port        string
+	dbconfig    dbconfig
 	environment string
 }
 
 type dbconfig struct {
-	Addr string
+	Addr                       string
 	maxOpenConns, maxIdleConns int
-	maxIdleTime time.Duration
+	maxIdleTime                time.Duration
 }
 
 func (app *application) mount() http.Handler {
-	
+
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
-  	r.Use(middleware.RealIP)
- 	r.Use(middleware.Logger)
-  	r.Use(middleware.Recoverer)
-	r.Route("/v1", func (r chi.Router) {
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+	r.Route("/v1", func(r chi.Router) {
 		r.Get("/health", app.health)
-		r.Route("/posts", func (r chi.Router) {
+		r.Route("/posts", func(r chi.Router) {
 			r.Post("/", app.createPost)
 			r.Get("/", app.getAllPosts)
 			r.Delete("/", app.deleteAllPosts)
@@ -49,7 +49,7 @@ func (app *application) mount() http.Handler {
 		r.Route("/users", func(r chi.Router) {
 			r.Post("/", app.createUser)
 
-			r.Route("/{id}", func (r chi.Router) {
+			r.Route("/{id}", func(r chi.Router) {
 				// r.Get("/", app.getUserByID)
 
 			})
@@ -62,11 +62,11 @@ func (app *application) mount() http.Handler {
 func (app *application) start(mux http.Handler) error {
 
 	srv := &http.Server{
-		Addr: app.config.port,
-		Handler: mux,
+		Addr:         app.config.port,
+		Handler:      mux,
 		WriteTimeout: time.Second * 30,
-		ReadTimeout: time.Second * 10,
-		IdleTimeout: time.Minute,
+		ReadTimeout:  time.Second * 10,
+		IdleTimeout:  time.Minute,
 	}
 
 	log.Printf("Starting server on port %s...\n", app.config.port)

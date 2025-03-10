@@ -9,17 +9,16 @@ import (
 	"github.com/puremike/social-go/internal/store"
 )
 
-func main () {
+func main() {
 
 	envData := env.GetPort()
 
-	cfg := config {
+	cfg := config{
 		port: envData.Port,
-		dbconfig: dbconfig {
-			Addr:     envData.DB_URI,
-            maxOpenConns: 10,
-            maxIdleConns: 5,
-            maxIdleTime:  15 * time.Minute, // 15 minutes /
+		dbconfig: dbconfig{
+			Addr:         envData.DB_URI,
+			maxOpenConns: 10,
+			maxIdleConns: 5, maxIdleTime: 15 * time.Minute, // 15 minutes /
 		},
 		environment: "development",
 	}
@@ -34,9 +33,9 @@ func main () {
 	str := store.NewStorage(db)
 
 	app := &application{
-        config: cfg, 
-		store: str,
-    }
+		config: cfg,
+		store:  str,
+	}
 
 	mux := app.mount()
 	log.Fatal(app.start(mux))

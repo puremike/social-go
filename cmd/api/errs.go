@@ -11,6 +11,7 @@ func (app *application) internalServer(w http.ResponseWriter, r *http.Request, e
 	data := map[string]string {
         "status" : "error",
         "message" : "Internal Server Error",
+		"error": err.Error(),
     }
 
 	log.Printf("internal server error: %s\n path: %s\n error: %s", r.Method, r.URL.Path, err)
