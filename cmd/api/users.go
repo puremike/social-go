@@ -1,9 +1,14 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"net/http"
+	"strconv"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/puremike/social-go/internal/model"
+	"github.com/puremike/social-go/internal/store"
 )
 
 type userField struct {
@@ -12,6 +17,13 @@ type userField struct {
 	Password string `json:"password" validate:"required"`
 }
 
+type FollowUser struct {
+	UserID string `json:"user_id"`
+}
+
+
+type userKey string
+const user_key userKey = "user"
 
 func (app *application) createUser(w http.ResponseWriter, r *http.Request) {
 	var payload userField
@@ -41,4 +53,87 @@ func (app *application) createUser(w http.ResponseWriter, r *http.Request) {
 		app.internalServer(w, r, err)
 		return 
 	}
+}
+
+func (app *application) getUserByID(w http.ResponseWriter, r *http.Request) {
+	user := getUserFromContext(r)
+
+	if err := jsonResponse(w, http.StatusOK, user); err != nil {
+		app.internalServer(w, r, err)
+		return
+	}
+
+}
+
+func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request) {
+	followerUser := getUserFromContext(r)
+	followedID, err := strconv.Atoi(chi.URLParam(r, "id"))
+
+	if err != nil {
+		app.badRequest(w, r, err)
+		return
+	}
+
+	ctx := r.Context()
+
+	if err := app.store.Followers.Follow(ctx, followerUser.ID, followedID); err != nil {
+		app.internalServer(w, r, err)
+		return
+	}
+
+	if err := jsonResponse(w, http.StatusNoContent, nil); err != nil {
+		app.internalServer(w, r, err)
+		return
+	}
+}
+
+func (app *application) unFollowUserHandler(w http.ResponseWriter, r *http.Request) {
+	followerUser := getUserFromContext(r)
+	followedID, err := strconv.Atoi(chi.URLParam(r, "id"))
+
+	if err != nil {
+		app.badRequest(w, r, err)
+		return
+	}
+
+	ctx := r.Context()
+
+	if err := app.store.Followers.Unfollow(ctx, followerUser.ID, followedID); err != nil {
+		app.internalServer(w, r, err)
+		return
+	}
+
+	if err := jsonResponse(w, http.StatusNoContent, nil); err != nil {
+		app.internalServer(w, r, err)
+		return
+	}
+}
+
+func (app *application) userContextMiddleWare(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id, err := strconv.Atoi(chi.URLParam(r, "id"))
+
+		if err != nil {
+		app.internalServer(w, r, err)
+		return
+		}
+		ctx := r.Context()
+		user, err := app.store.Users.GetUserByID(ctx, id)
+		if err != nil {
+			if errors.Is(err, store.ErrUserNotFound) {
+			app.notFound(w, r, err)
+			return
+		}
+		writeJSONError(w, http.StatusInternalServerError, err.Error())
+		}
+
+		ctx = context.WithValue(ctx, user_key, user)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func getUserFromContext(r *http.Request) *model.UserModel {
+	ctx := r.Context()
+	user, _ := ctx.Value(user_key).(*model.UserModel)
+	return user
 }

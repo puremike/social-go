@@ -11,6 +11,12 @@ type PostModel struct {
 	Comments []CommentModel `json:"comments"`
 }
 
+type FollowerModel struct {
+	FollowerID int `json:"follower_id"`
+	UserID int `json:"user_id"`
+	CreatedAt string `json:"created_at"`
+}
+
 type UserModel struct {
 	ID int `json:"id"`
 	Username string `json:"username"`

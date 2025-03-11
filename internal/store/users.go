@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/puremike/social-go/internal/model"
 )
@@ -21,4 +22,24 @@ func (s *UserStore) Create(ctx context.Context, user *model.UserModel) error {
     }
 
 	return nil
+}
+
+func (s *UserStore) GetUserByID(ctx context.Context, id int) (*model.UserModel, error) {
+	query := `SELECT id, username, email, password, created_at FROM users WHERE id = $1`
+
+	user := &model.UserModel{}
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	err := s.db.QueryRowContext(ctx, query, id).Scan(&user.ID, &user.Username, &user.Email, &user.Password, &user.CreatedAt)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrUserNotFound
+		}
+		return nil, err
+	}
+
+	return user, nil
 }

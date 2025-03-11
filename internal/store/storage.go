@@ -12,7 +12,14 @@ import (
 type Storage struct {
 	Users interface {
 		Create(context.Context, *model.UserModel) error
+		GetUserByID(context.Context, int) (*model.UserModel, error)
 	}
+
+	Followers interface {
+		Follow(context.Context, int, int) error
+		Unfollow(context.Context, int, int) error
+	}
+
 	Posts interface {
 		Create(context.Context, *model.PostModel) error
 		GetPostByID(context.Context, int) (*model.PostModel, error)
@@ -21,6 +28,7 @@ type Storage struct {
 		DeleteAllPosts(context.Context) error
 		UpdatePost(context.Context, int, *model.PostModel) error
 	}
+
 	Comments interface {
         GetCommentsByPostID(context.Context, int) ([]model.CommentModel, error)
     }
@@ -28,6 +36,7 @@ type Storage struct {
 
 var (
 	ErrPostNotFound = errors.New("post not found")
+	ErrUserNotFound = errors.New("user not found")
 	QueryTimeoutDuration = 5 * time.Second
 )
 
@@ -36,6 +45,7 @@ func NewStorage(db *sql.DB) Storage {
 		Users : &UserStore{db},
 		Posts : &PostStore{db},
 		Comments: &CommentStore{db},
+		Followers: &FollowerStore{db},
 	}
 
 	return str
