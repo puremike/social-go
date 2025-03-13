@@ -18,7 +18,7 @@ type userField struct {
 }
 
 type FollowUser struct {
-	UserID string `json:"user_id"`
+	UserID int `json:"user_id"`
 }
 
 
@@ -66,17 +66,17 @@ func (app *application) getUserByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request) {
-	followerUser := getUserFromContext(r)
-	followedID, err := strconv.Atoi(chi.URLParam(r, "id"))
+	followerID := getUserFromContext(r)
 
-	if err != nil {
+	var payload FollowUser
+	if err := readJSON(w, r, &payload); err != nil {
 		app.badRequest(w, r, err)
 		return
 	}
 
 	ctx := r.Context()
 
-	if err := app.store.Followers.Follow(ctx, followerUser.ID, followedID); err != nil {
+	if err := app.store.Followers.Follow(ctx, followerID.ID, payload.UserID); err != nil {
 		app.internalServer(w, r, err)
 		return
 	}
@@ -88,17 +88,16 @@ func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (app *application) unFollowUserHandler(w http.ResponseWriter, r *http.Request) {
-	followerUser := getUserFromContext(r)
-	followedID, err := strconv.Atoi(chi.URLParam(r, "id"))
-
-	if err != nil {
+	unFollowerID := getUserFromContext(r)
+	var payload FollowUser
+	if err := readJSON(w, r, &payload); err != nil {
 		app.badRequest(w, r, err)
 		return
 	}
 
 	ctx := r.Context()
 
-	if err := app.store.Followers.Unfollow(ctx, followerUser.ID, followedID); err != nil {
+	if err := app.store.Followers.Unfollow(ctx, unFollowerID.ID, payload.UserID); err != nil {
 		app.internalServer(w, r, err)
 		return
 	}
@@ -112,17 +111,16 @@ func (app *application) unFollowUserHandler(w http.ResponseWriter, r *http.Reque
 func (app *application) userContextMiddleWare(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id, err := strconv.Atoi(chi.URLParam(r, "id"))
-
 		if err != nil {
-		app.internalServer(w, r, err)
+			app.internalServer(w, r, err)
 		return
 		}
 		ctx := r.Context()
 		user, err := app.store.Users.GetUserByID(ctx, id)
 		if err != nil {
 			if errors.Is(err, store.ErrUserNotFound) {
-			app.notFound(w, r, err)
-			return
+				app.notFound(w, r, err)
+				return
 		}
 		writeJSONError(w, http.StatusInternalServerError, err.Error())
 		}
@@ -133,7 +131,6 @@ func (app *application) userContextMiddleWare(next http.Handler) http.Handler {
 }
 
 func getUserFromContext(r *http.Request) *model.UserModel {
-	ctx := r.Context()
-	user, _ := ctx.Value(user_key).(*model.UserModel)
+	user, _ := r.Context().Value(user_key).(*model.UserModel)
 	return user
 }

@@ -30,6 +30,7 @@ type dbconfig struct {
 func (app *application) mount() http.Handler {
 
 	r := chi.NewRouter()
+	r.Use(middleware.StripSlashes) // Automatically removes trailing slashes
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
@@ -48,12 +49,18 @@ func (app *application) mount() http.Handler {
 		})
 		r.Route("/users", func(r chi.Router) {
 			r.Post("/", app.createUser)
+
+			r.Group(func(r chi.Router) {
+				r.Get("/{id}/feed", app.getUserFeedsHandler)
+			})
+
 			r.Route("/{id}", func(r chi.Router) {
 				r.Use(app.userContextMiddleWare)
 				r.Get("/", app.getUserByID)
 				r.Put("/follow", app.followUserHandler)
 				r.Put("/unfollow", app.unFollowUserHandler)
 			})
+
 		})
 	})
 

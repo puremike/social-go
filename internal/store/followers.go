@@ -19,7 +19,7 @@ func (s *FollowerStore) Follow(ctx context.Context, follower_id, id int) error {
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	_, err := s.db.ExecContext(ctx, query, follower_id, id)
+	_, err := s.db.ExecContext(ctx, query, id, follower_id)
 
 	if err != nil {
 		return errors.New("something went wrong")
@@ -35,7 +35,7 @@ func (s *FollowerStore) Unfollow(ctx context.Context, follower_id, id int) error
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	_, err := s.db.ExecContext(ctx, query, follower_id, id)
+	_, err := s.db.ExecContext(ctx, query, id, follower_id)
 
 	if err != nil {
 		return errors.New("something went wrong")	

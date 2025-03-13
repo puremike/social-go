@@ -9,6 +9,7 @@ type PostModel struct {
 	CreatedAt string	`json:"created_at"`
 	UpdatedAt string	`json:"updated_at"`
 	Comments []CommentModel `json:"comments"`
+	User UserModel	`json:"user"`
 }
 
 type FollowerModel struct {
