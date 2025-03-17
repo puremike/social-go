@@ -1,13 +1,16 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/puremike/social-go/docs"
 	"github.com/puremike/social-go/internal/store"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
 type application struct {
@@ -19,6 +22,7 @@ type config struct {
 	port        string
 	dbconfig    dbconfig
 	environment string
+	apiUrl string
 }
 
 type dbconfig struct {
@@ -35,18 +39,27 @@ func (app *application) mount() http.Handler {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	
 	r.Route("/v1", func(r chi.Router) {
 		r.Get("/health", app.health)
+
+		docURL := fmt.Sprintf("%s/swagger/doc.json", app.config.port)
+		r.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL(docURL), //The url pointing to API definition
+	))
+
 		r.Route("/posts", func(r chi.Router) {
 			r.Post("/", app.createPost)
 			r.Get("/", app.getAllPosts)
 			r.Delete("/", app.deleteAllPosts)
+			
 			r.Route("/{id}", func(r chi.Router) {
 				r.Get("/", app.getPostById)
 				r.Delete("/", app.deletePostByID)
 				r.Patch("/", app.updatePost)
 			})
 		})
+
 		r.Route("/users", func(r chi.Router) {
 			r.Post("/", app.createUser)
 
@@ -68,6 +81,12 @@ func (app *application) mount() http.Handler {
 }
 
 func (app *application) start(mux http.Handler) error {
+
+	// swagger docs
+
+	docs.SwaggerInfo.Version = "1.0"
+	docs.SwaggerInfo.BasePath = "/v1"
+	docs.SwaggerInfo.Host = app.config.apiUrl
 
 	srv := &http.Server{
 		Addr:         app.config.port,

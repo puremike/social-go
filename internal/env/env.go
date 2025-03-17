@@ -8,7 +8,7 @@ import (
 )
 
 type Config struct {
-	Port, DB_URI string
+	Port, DB_URI, SWAGGER_API_URL string
 }
 
 func GetPort() Config {
@@ -27,8 +27,14 @@ func GetPort() Config {
         log.Fatal("DB_URI is not set")
     }
 
+	api_url := os.Getenv("SWAGGER_API_URL")
+	if api_url == "" {
+		api_url = "localhost:5100"
+	}
+
 	return Config{
 		Port: port,
         DB_URI: db_uri,
+		SWAGGER_API_URL: api_url,
 	}
 }

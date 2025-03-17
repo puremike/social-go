@@ -25,6 +25,20 @@ type FollowUser struct {
 type userKey string
 const user_key userKey = "user"
 
+// GetUser godoc
+//	@Summary		Fetch a user profile
+//	@Description	get user profile by ID
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		int	true	"User ID"
+//	@Success		200	{object}	model.UserModel
+//	@Failure		400	{object}	httputil.HTTPError
+//	@Failure		404	{object}	httputil.HTTPError
+//	@Failure		500	{object}	httputil.HTTPError
+//	@Security		ApiKeyAuth
+//	@Router			/users/{id} [get]
+
 func (app *application) createUser(w http.ResponseWriter, r *http.Request) {
 	var payload userField
 	if err := readJSON(w, r, &payload); err != nil {
@@ -65,6 +79,20 @@ func (app *application) getUserByID(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// FollowUser godoc
+//
+//	@Summary		Follows a user
+//	@Description	Follows a user by ID
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		int		true	"User ID"
+//	@Success		204		{string}	string	"User followed"
+//	@Failure		400		{object}	error	"User payload missing"
+//	@Failure		404		{object}	error	"User not found"
+//	@Security		ApiKeyAuth
+//	@Router			/users/{id}/follow [put]
+
 func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request) {
 	followerID := getUserFromContext(r)
 
@@ -86,6 +114,20 @@ func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 }
+
+// UnfollowUser gdoc
+//
+//	@Summary		Unfollow a user
+//	@Description	Unfollow a user by ID
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		int		true	"User ID"
+//	@Success		204		{string}	string	"User unfollowed"
+//	@Failure		400		{object}	error	"User payload missing"
+//	@Failure		404		{object}	error	"User not found"
+//	@Security		ApiKeyAuth
+//	@Router			/users/{id}/unfollow [put]
 
 func (app *application) unFollowUserHandler(w http.ResponseWriter, r *http.Request) {
 	unFollowerID := getUserFromContext(r)

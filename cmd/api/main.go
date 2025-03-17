@@ -9,6 +9,25 @@ import (
 	"github.com/puremike/social-go/internal/store"
 )
 
+//	@title	Social_Go API
+
+//	@description	This is an API for my Social_Go
+//	@termsOfService	http://swagger.io/terms/
+
+//	@contact.name	API Support
+//	@contact.url	http://www.swagger.io/support
+//	@contact.email	support@swagger.io
+
+//	@license.name	Apache 2.0
+//	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
+
+//	@BasePath	/v1
+
+//	@securityDefinitions.apiKey	ApiKeyAuth
+//	@in							header
+//	@name						Authorization
+//	@description
+
 func main() {
 
 	envData := env.GetPort()
@@ -21,6 +40,7 @@ func main() {
 			maxIdleConns: 5, maxIdleTime: 15 * time.Minute, // 15 minutes /
 		},
 		environment: "development",
+		apiUrl: envData.SWAGGER_API_URL,
 	}
 	db, err := db.NewDB(cfg.dbconfig.Addr, cfg.dbconfig.maxOpenConns, cfg.dbconfig.maxIdleConns, cfg.dbconfig.maxIdleTime)
 	if err != nil {
