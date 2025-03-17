@@ -27,7 +27,7 @@ type Storage struct {
 		DeletePostByID(context.Context, int) error
 		DeleteAllPosts(context.Context) error
 		UpdatePost(context.Context, int, *model.PostModel) error
-		GetUserFeed(context.Context, int) ([]PostWithMetaData, error)
+		GetUserFeed(context.Context, int, PagQuery) ([]PostWithMetaData, error)
 	}
 
 	Comments interface {

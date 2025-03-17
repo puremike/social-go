@@ -51,7 +51,7 @@ func (app *application) mount() http.Handler {
 			r.Post("/", app.createUser)
 
 			r.Group(func(r chi.Router) {
-				r.Get("/{id}/feed", app.getUserFeedsHandler)
+				r.Get("/{id}/feeds", app.getUserFeedsHandler)
 			})
 
 			r.Route("/{id}", func(r chi.Router) {
