@@ -1,12 +1,12 @@
 package main
 
 import (
-	"log"
 	"time"
 
 	"github.com/puremike/social-go/internal/db"
 	"github.com/puremike/social-go/internal/env"
 	"github.com/puremike/social-go/internal/store"
+	"go.uber.org/zap"
 )
 
 //	@title	Social_Go API
@@ -42,21 +42,27 @@ func main() {
 		environment: "development",
 		apiUrl: envData.SWAGGER_API_URL,
 	}
+
+	// Logger - using SugaredLogger
+	logger := zap.NewExample().Sugar()
+	defer logger.Sync()
+
 	db, err := db.NewDB(cfg.dbconfig.Addr, cfg.dbconfig.maxOpenConns, cfg.dbconfig.maxIdleConns, cfg.dbconfig.maxIdleTime)
 	if err != nil {
-		log.Panic(err)
+		logger.Fatal(err)
 	}
 	defer db.Close()
 
-	log.Println("Database connected successfully")
+	logger.Info("Database connected successfully")
 
 	str := store.NewStorage(db)
 
 	app := &application{
 		config: cfg,
 		store:  str,
+		logger: logger,
 	}
 
 	mux := app.mount()
-	log.Fatal(app.start(mux))
+	logger.Fatal(app.start(mux))
 }
