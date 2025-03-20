@@ -85,7 +85,7 @@ func (app *application) start(mux http.Handler) error {
 
 	// swagger docs
 
-	docs.SwaggerInfo.Version = "1.0"
+	docs.SwaggerInfo.Version = "2.0"
 	docs.SwaggerInfo.BasePath = "/v1"
 	docs.SwaggerInfo.Host = app.config.apiUrl
 

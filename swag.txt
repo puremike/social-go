@@ -1,0 +1,4 @@
+Firstly, change into the cmd/api directory
+
+Secondly, run the following command:
+    swag init main.go -d .,../../internal/ -o ../../docs/
