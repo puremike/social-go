@@ -74,8 +74,13 @@ func (app *application) mount() http.Handler {
 				r.Put("/follow", app.followUserHandler)
 				r.Put("/unfollow", app.unFollowUserHandler)
 			})
-
 		})
+
+		r.Route("/authentication", func (r chi.Router) {
+			r.Post("/user", app.registerUserHandler)
+		})
+
+
 	})
 
 	return r

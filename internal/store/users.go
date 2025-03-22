@@ -6,10 +6,38 @@ import (
 	"errors"
 
 	"github.com/puremike/social-go/internal/model"
+	"golang.org/x/crypto/bcrypt"
 )
+
 
 type UserStore struct {
 	db *sql.DB
+}
+
+type Password struct {
+	password *string
+	hash []byte
+}
+
+type UserModel struct {
+	ID int `json:"id"`
+	Username string `json:"username"`
+	Email string `json:"email"`
+	Password Password `json:"-"`
+	CreatedAt string `json:"created_at"`
+}
+
+
+func(p *Password) Set(password string) error {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	p.password = &password
+	p.hash = hash
+
+	return nil
 }
 
 func (s *UserStore) Create(ctx context.Context, user *model.UserModel) error {
@@ -42,4 +70,12 @@ func (s *UserStore) GetUserByID(ctx context.Context, id int) (*model.UserModel, 
 	}
 
 	return user, nil
+}
+
+
+func (s *UserStore) CreateAndInvite(ctx context.Context, user *UserModel, token string) error {
+	// transaction wrapper
+	// create user
+	// create user invite
+	return nil
 }

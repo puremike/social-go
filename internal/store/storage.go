@@ -13,6 +13,7 @@ type Storage struct {
 	Users interface {
 		Create(context.Context, *model.UserModel) error
 		GetUserByID(context.Context, int) (*model.UserModel, error)
+		CreateAndInvite(context.Context, *UserModel, string) error
 	}
 
 	Followers interface {

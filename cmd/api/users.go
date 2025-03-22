@@ -17,27 +17,13 @@ type userField struct {
 	Password string `json:"password" validate:"required"`
 }
 
-type FollowUser struct {
+type followUser struct {
 	UserID int `json:"user_id"`
 }
 
 
 type userKey string
 const user_key userKey = "user"
-
-// GetUser godoc
-//	@Summary		Fetch a user profile
-//	@Description	get user profile by ID
-//	@Tags			users
-//	@Accept			json
-//	@Produce		json
-//	@Param			id	path		int	true	"User ID"
-//	@Success		200	{object}	model.UserModel
-//	@Failure		400	{object}	httputil.HTTPError
-//	@Failure		404	{object}	httputil.HTTPError
-//	@Failure		500	{object}	httputil.HTTPError
-//	@Security		ApiKeyAuth
-//	@Router			/users/{id} [get]
 
 func (app *application) createUser(w http.ResponseWriter, r *http.Request) {
 	var payload userField
@@ -69,6 +55,20 @@ func (app *application) createUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetUser godoc
+//	@Summary		Fetch a user profile
+//	@Description	get user profile by ID
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		userField	true	"User ID"
+//	@Success		200	{object}	userField
+//	@Failure		400	{object}	httputil.HTTPError
+//	@Failure		404	{object}	httputil.HTTPError
+//	@Failure		500	{object}	httputil.HTTPError
+//	@Security		ApiKeyAuth
+//	@Router			/users/{id} [get]
+
 func (app *application) getUserByID(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromContext(r)
 
@@ -86,7 +86,7 @@ func (app *application) getUserByID(w http.ResponseWriter, r *http.Request) {
 //	@Tags			users
 //	@Accept			json
 //	@Produce		json
-//	@Param			id	path		int		true	"User ID"
+//	@Param			id	path		FollowUser		true	"User ID"
 //	@Success		204		{string}	string	"User followed"
 //	@Failure		400		{object}	error	"User payload missing"
 //	@Failure		404		{object}	error	"User not found"
@@ -96,7 +96,7 @@ func (app *application) getUserByID(w http.ResponseWriter, r *http.Request) {
 func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request) {
 	followerID := getUserFromContext(r)
 
-	var payload FollowUser
+	var payload followUser
 	if err := readJSON(w, r, &payload); err != nil {
 		app.badRequest(w, r, err)
 		return
@@ -122,7 +122,7 @@ func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request
 //	@Tags			users
 //	@Accept			json
 //	@Produce		json
-//	@Param			id	path		int		true	"User ID"
+//	@Param			id	path		FollowUser		true	"User ID"
 //	@Success		204		{string}	string	"User unfollowed"
 //	@Failure		400		{object}	error	"User payload missing"
 //	@Failure		404		{object}	error	"User not found"
@@ -131,7 +131,7 @@ func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request
 
 func (app *application) unFollowUserHandler(w http.ResponseWriter, r *http.Request) {
 	unFollowerID := getUserFromContext(r)
-	var payload FollowUser
+	var payload followUser
 	if err := readJSON(w, r, &payload); err != nil {
 		app.badRequest(w, r, err)
 		return
