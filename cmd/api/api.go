@@ -23,7 +23,12 @@ type config struct {
 	port        string
 	dbconfig    dbconfig
 	environment string
-	apiUrl string
+	apiUrl      string
+	mail        mailConfig
+}
+
+type mailConfig struct {
+	invitationExp time.Duration
 }
 
 type dbconfig struct {
@@ -40,20 +45,20 @@ func (app *application) mount() http.Handler {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
-	
+
 	r.Route("/v1", func(r chi.Router) {
 		r.Get("/health", app.health)
 
 		docURL := fmt.Sprintf("%s/swagger/doc.json", app.config.port)
 		r.Get("/swagger/*", httpSwagger.Handler(
-		httpSwagger.URL(docURL), //The url pointing to API definition
-	))
+			httpSwagger.URL(docURL), //The url pointing to API definition
+		))
 
 		r.Route("/posts", func(r chi.Router) {
 			r.Post("/", app.createPost)
 			r.Get("/", app.getAllPosts)
 			r.Delete("/", app.deleteAllPosts)
-			
+
 			r.Route("/{id}", func(r chi.Router) {
 				r.Get("/", app.getPostById)
 				r.Delete("/", app.deletePostByID)
@@ -62,6 +67,7 @@ func (app *application) mount() http.Handler {
 		})
 
 		r.Route("/users", func(r chi.Router) {
+			r.Put("/activate/{token}", app.activateUserHandler)
 			r.Post("/", app.createUser)
 
 			r.Group(func(r chi.Router) {
@@ -76,10 +82,9 @@ func (app *application) mount() http.Handler {
 			})
 		})
 
-		r.Route("/authentication", func (r chi.Router) {
+		r.Route("/authentication", func(r chi.Router) {
 			r.Post("/user", app.registerUserHandler)
 		})
-
 
 	})
 

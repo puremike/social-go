@@ -40,7 +40,10 @@ func main() {
 			maxIdleConns: 5, maxIdleTime: 15 * time.Minute, // 15 minutes /
 		},
 		environment: "development",
-		apiUrl: envData.SWAGGER_API_URL,
+		apiUrl:      envData.SWAGGER_API_URL,
+		mail: mailConfig{
+			invitationExp: time.Hour * 24 * 3,
+		},
 	}
 
 	// Logger - using SugaredLogger
