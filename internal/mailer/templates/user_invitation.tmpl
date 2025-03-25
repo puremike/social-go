@@ -1,0 +1,32 @@
+{{define "subject"}} Finish Registration with SocialGo {{ end }}
+
+{{define "body"}}
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Document</title>
+	</head>
+	<body>
+		<p>Hi {{.Usernam}}</p>
+		<p>
+			Thanks for signing up for SocialGo. We're excited to have you on board!
+		</p>
+		<p>
+			Before you can start using SocialGo, you need to confirm your email
+			address. Click the link below to confirm your email address:
+		</p>
+		<p>
+			<a href="{{.ActivationURL}}">{{.ActivationURL}}</a>
+		</p>
+		<p>
+			If you want to activate your account manually, copy and paste the code
+			from the link above
+		</p>
+		<P>If you didn't signup for SocialGo, you can safely ignore this email.</P>
+		<p>Thanks,</p>
+		<p>The SocialGo Team</p>
+	</body>
+</html>
+{{ end }}
