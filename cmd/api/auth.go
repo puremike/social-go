@@ -3,9 +3,11 @@ package main
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/puremike/social-go/internal/mailer"
 	"github.com/puremike/social-go/internal/store"
 )
 
@@ -72,6 +74,34 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 			app.internalServer(w, r, err)
 		}
 		return
+	}
+
+	// send email
+
+	isProdEnv := app.config.environment == "production"
+
+	vars := struct {
+		Username, ActivationURL string
+	}{
+		Username:      user.Username,
+		ActivationURL: fmt.Sprintf("%s/activate/%s", app.config.frontEndURL, plainToken),
+	}
+
+	statusCode, err := app.mailer.SendMailTrap(mailer.WelcomeUserTemplate, user.Username, user.Email, vars, !isProdEnv)
+
+	if err != nil {
+		app.logger.Errorw("Failed to send welcome email", "error", err, "statusCode", statusCode)
+
+		//  rollback if send fails
+		if err := app.store.Users.Delete(ctx, user.ID); err != nil {
+			app.logger.Errorw("Failed to rollback user after email send failure", "error", err)
+		}
+
+		app.internalServer(w, r, err)
+		return
+	} else {
+		app.logger.Infow("Email sent", "status code", statusCode)
+
 	}
 
 	userWithToken := userWithToken{

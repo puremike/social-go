@@ -11,14 +11,13 @@ import (
 )
 
 type postField struct {
-	Content string	`json:"content" validate:"required,max=1000"`
-	Title string 	`json:"title" validate:"required,max=100"`
-	UserID int	`json:"user_id"`
-	Tags []string	`json:"tags"`
+	Content string   `json:"content" validate:"required,max=1000"`
+	Title   string   `json:"title" validate:"required,max=100"`
+	UserID  int      `json:"user_id"`
+	Tags    []string `json:"tags"`
 }
 
 var payload postField
-	
 
 // createPost godoc
 //
@@ -36,19 +35,19 @@ var payload postField
 //	@Router			/posts [post]
 func (app *application) createPost(w http.ResponseWriter, r *http.Request) {
 	if err := readJSON(w, r, &payload); err != nil {
-        app.badRequest(w, r, err)
-        return
-    }
+		app.badRequest(w, r, err)
+		return
+	}
 
 	if err := Validate.Struct(payload); err != nil {
-        app.badRequest(w, r, err)
-        return
-    } 
+		app.badRequest(w, r, err)
+		return
+	}
 	post := &model.PostModel{
-		Content : payload.Content,
-		Title : payload.Title,
-        UserID : payload.UserID,
-        Tags : payload.Tags,
+		Content: payload.Content,
+		Title:   payload.Title,
+		UserID:  payload.UserID,
+		Tags:    payload.Tags,
 	}
 
 	ctx := r.Context()
@@ -76,7 +75,7 @@ func (app *application) getAllPosts(w http.ResponseWriter, r *http.Request) {
 
 	if err := jsonResponse(w, http.StatusCreated, posts); err != nil {
 		app.internalServer(w, r, err)
-        return
+		return
 	}
 }
 
@@ -97,7 +96,7 @@ func (app *application) getPostById(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		app.internalServer(w, r, err)
-        return
+		return
 	}
 
 	ctx := r.Context()
@@ -121,7 +120,7 @@ func (app *application) getPostById(w http.ResponseWriter, r *http.Request) {
 
 	if err := jsonResponse(w, http.StatusCreated, post); err != nil {
 		app.internalServer(w, r, err)
-        return
+		return
 	}
 }
 
@@ -159,20 +158,20 @@ func (app *application) deletePostByID(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (app *application) deleteAllPosts(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	if err := app.store.Posts.DeleteAllPosts(ctx); err != nil {
-		app.badRequest(w, r, err)
-		return
-	}
+// func (app *application) deleteAllPosts(w http.ResponseWriter, r *http.Request) {
+// 	ctx := r.Context()
+// 	if err := app.store.Posts.DeleteAllPosts(ctx); err != nil {
+// 		app.badRequest(w, r, err)
+// 		return
+// 	}
 
-	message := "All posts have been deleted successfully"
-	
-	if err := jsonResponse(w, http.StatusOK, message); err!= nil {
-        app.internalServer(w, r, err)
-        return
-    }
-}
+// 	message := "All posts have been deleted successfully"
+
+// 	if err := jsonResponse(w, http.StatusOK, message); err!= nil {
+//         app.internalServer(w, r, err)
+//         return
+//     }
+// }
 
 // UpdatePost godoc
 //
@@ -193,19 +192,19 @@ func (app *application) deleteAllPosts(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) updatePost(w http.ResponseWriter, r *http.Request) {
 	if err := readJSON(w, r, &payload); err != nil {
-        app.badRequest(w, r, err)
-        return
-    }
+		app.badRequest(w, r, err)
+		return
+	}
 
-	if err := Validate.Struct(payload); err!= nil {
-        app.badRequest(w, r, err)
-        return
-    }
-	
+	if err := Validate.Struct(payload); err != nil {
+		app.badRequest(w, r, err)
+		return
+	}
+
 	post := &model.PostModel{
 		Content: payload.Content,
-        Title: payload.Title,
-        Tags: payload.Tags,
+		Title:   payload.Title,
+		Tags:    payload.Tags,
 	}
 
 	id, err := strconv.Atoi(chi.URLParam(r, "id"))

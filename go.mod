@@ -17,6 +17,8 @@ require (
 	golang.org/x/crypto v0.36.0
 )
 
+require gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
+
 require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
@@ -37,5 +39,6 @@ require (
 	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/text v0.23.0 // indirect
 	golang.org/x/tools v0.31.0 // indirect
+	gopkg.in/mail.v2 v2.3.1
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

@@ -80,7 +80,25 @@ func (app *application) getUserByID(w http.ResponseWriter, r *http.Request) {
 		app.internalServer(w, r, err)
 		return
 	}
+}
 
+func (app *application) deleteUserByIDHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		app.badRequest(w, r, err)
+		return
+	}
+	ctx := r.Context()
+
+	if err := app.store.Users.DeleteUserByID(ctx, id); err != nil {
+		app.badRequest(w, r, err)
+		return
+	}
+
+	if err := jsonResponse(w, http.StatusCreated, "User deleted successfully"); err != nil {
+		app.internalServer(w, r, err)
+		return
+	}
 }
 
 // FollowUser godoc

@@ -16,6 +16,8 @@ type Storage struct {
 		createUserForInvitation(context.Context, *sql.Tx, *UserModel) error
 		CreateAndInvite(context.Context, *UserModel, string, time.Duration) error
 		Activate(context.Context, string) error
+		Delete(context.Context, int) error
+		DeleteUserByID(context.Context, int) error
 	}
 
 	Followers interface {
@@ -28,7 +30,7 @@ type Storage struct {
 		GetPostByID(context.Context, int) (*model.PostModel, error)
 		GetAllPosts(context.Context) ([]model.PostModel, error)
 		DeletePostByID(context.Context, int) error
-		DeleteAllPosts(context.Context) error
+		// DeleteAllPosts(context.Context) error
 		UpdatePost(context.Context, int, *model.PostModel) error
 		GetUserFeed(context.Context, int, PagQuery) ([]PostWithMetaData, error)
 	}

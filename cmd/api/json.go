@@ -7,7 +7,7 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-var Validate *validator.Validate 
+var Validate *validator.Validate
 
 func init() {
 	Validate = validator.New(validator.WithRequiredStructEnabled())
@@ -20,7 +20,7 @@ func readJSON(w http.ResponseWriter, r *http.Request, data any) error {
 	decoded.DisallowUnknownFields()
 
 	return decoded.Decode(data)
-	
+
 }
 
 func writeJSON(w http.ResponseWriter, status int, data any) error {
@@ -31,19 +31,19 @@ func writeJSON(w http.ResponseWriter, status int, data any) error {
 	return encoded
 }
 
-func writeJSONError (w http.ResponseWriter, status int, data any) error {
+func writeJSONError(w http.ResponseWriter, status int, data any) error {
 	type errFmt struct {
 		Error any `json:"error"`
 	}
 
-	return writeJSON(w, status, &errFmt{Error: data} )
+	return writeJSON(w, status, &errFmt{Error: data})
 
 }
 
 func jsonResponse(w http.ResponseWriter, status int, data any) error {
 
 	type envelope struct {
-		Data any `json:"data"`	
+		Data any `json:"data"`
 	}
 
 	return writeJSON(w, status, &envelope{Data: data})

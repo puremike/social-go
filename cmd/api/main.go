@@ -5,6 +5,7 @@ import (
 
 	"github.com/puremike/social-go/internal/db"
 	"github.com/puremike/social-go/internal/env"
+	"github.com/puremike/social-go/internal/mailer"
 	"github.com/puremike/social-go/internal/store"
 	"go.uber.org/zap"
 )
@@ -43,7 +44,15 @@ func main() {
 		apiUrl:      envData.SWAGGER_API_URL,
 		mail: mailConfig{
 			invitationExp: time.Hour * 24 * 3,
+			fromEmail:     envData.FROM_EMAIL,
+			// sendgrid: sendGridConfig{
+			// 	apiKey: envData.SENDGRID_API_KEY,
+			// },
+			mailTrap: mailTrapConfig{
+				apiKey: envData.MAILTRAP_API_KEY,
+			},
 		},
+		frontEndURL: envData.FRONTEND_URL,
 	}
 
 	// Logger - using SugaredLogger
@@ -58,12 +67,19 @@ func main() {
 
 	logger.Info("Database connected successfully")
 
+	// mailer := mailer.NewSendGridMailer(cfg.mail.fromEmail, cfg.mail.sendgrid.apiKey)
+	mailer, err := mailer.NewMailTrapMailer(cfg.mail.fromEmail, cfg.mail.mailTrap.apiKey)
+	if err != nil {
+		logger.Errorw("Error: %v", err)
+	}
+
 	str := store.NewStorage(db)
 
 	app := &application{
 		config: cfg,
 		store:  str,
 		logger: logger,
+		mailer: mailer,
 	}
 
 	mux := app.mount()

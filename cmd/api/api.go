@@ -27,12 +27,22 @@ type config struct {
 	environment string
 	apiUrl      string
 	mail        mailConfig
+	frontEndURL string
 }
 
 type mailConfig struct {
 	invitationExp time.Duration
+	fromEmail     string
+	mailTrap      mailTrapConfig
+	// sendgrid      sendGridConfig
 }
 
+//	type sendGridConfig struct {
+//		apiKey string
+//	}
+type mailTrapConfig struct {
+	apiKey string
+}
 type dbconfig struct {
 	Addr                       string
 	maxOpenConns, maxIdleConns int
@@ -59,7 +69,7 @@ func (app *application) mount() http.Handler {
 		r.Route("/posts", func(r chi.Router) {
 			r.Post("/", app.createPost)
 			r.Get("/", app.getAllPosts)
-			r.Delete("/", app.deleteAllPosts)
+			// r.Delete("/", app.deleteAllPosts)
 
 			r.Route("/{id}", func(r chi.Router) {
 				r.Get("/", app.getPostById)
@@ -79,6 +89,7 @@ func (app *application) mount() http.Handler {
 			r.Route("/{id}", func(r chi.Router) {
 				r.Use(app.userContextMiddleWare)
 				r.Get("/", app.getUserByID)
+				r.Delete("/", app.deleteUserByIDHandler)
 				r.Put("/follow", app.followUserHandler)
 				r.Put("/unfollow", app.unFollowUserHandler)
 			})
@@ -109,6 +120,6 @@ func (app *application) start(mux http.Handler) error {
 		IdleTimeout:  time.Minute,
 	}
 
-	app.logger.Infow("Starting server on port", "port", app.config.port, "env", app.config.environment)
+	app.logger.Infow("Starting server on port:", "port", app.config.port, "env", app.config.environment)
 	return srv.ListenAndServe()
 }

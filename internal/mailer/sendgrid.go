@@ -1,10 +1,9 @@
 package mailer
 
 import (
-	"bytes"
 	"fmt"
-	"html/template"
 	"log"
+	"time"
 
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -31,26 +30,14 @@ func (s *SendGridMailer) Send(templateFile, username, email string, data any, is
 	to := mail.NewEmail(username, email)
 
 	// parse template
-	tmpl, err := template.ParseFS(FS, "templates/"+templateFile)
-	if err != nil {
-		return err
-	}
-
-	subject := new(bytes.Buffer)
-	err = tmpl.ExecuteTemplate(subject, "subject", data)
-	if err != nil {
-		return err
-	}
-
-	body := new(bytes.Buffer)
-	err = tmpl.ExecuteTemplate(body, "body", data)
+	subject, body, err := parseSendEmail(templateFile, data)
 	if err != nil {
 		return err
 	}
 
 	// send welcome email to user
 
-	message := mail.NewSingleEmail(from, subject.String(), to, "", body.String())
+	message := mail.NewSingleEmail(from, subject, to, "", body)
 
 	// set mail setting to allow email to be sent/not sent in development or production environment
 	message.SetMailSettings(&mail.MailSettings{
@@ -64,10 +51,15 @@ func (s *SendGridMailer) Send(templateFile, username, email string, data any, is
 	for i := range MaxRetries {
 		response, err := s.client.Send(message)
 		if err != nil {
-			log.Printf("Failed to send email to %v, attempt %d of %d", email, i+1, MaxRetries)
+			log.Printf("Failed to send email, attempt %d of %d", i+1, MaxRetries)
 			log.Printf("Error: %v", err.Error())
+
+			// exponential backoff
+			time.Sleep(time.Second * time.Duration(i+1))
+			continue
 		}
 		log.Printf("Email sent with statusCode %v", response.StatusCode)
+		return nil
 	}
 
 	return fmt.Errorf("error sending an email to: %v", to)
