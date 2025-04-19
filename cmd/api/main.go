@@ -3,6 +3,7 @@ package main
 import (
 	"time"
 
+	"github.com/puremike/social-go/internal/auth"
 	"github.com/puremike/social-go/internal/db"
 	"github.com/puremike/social-go/internal/env"
 	"github.com/puremike/social-go/internal/mailer"
@@ -53,6 +54,14 @@ func main() {
 			},
 		},
 		frontEndURL: envData.FRONTEND_URL,
+		auth: authConfig{
+			username:    envData.AUTH_HEADER_USERNAME,
+			password:    envData.AUTH_HEADER_PASSWORD,
+			tokenSecret: envData.AUTH_TOKEN_SECRET,
+			tokenExp:    time.Hour * 24 * 3, // 3 days
+			iss:         "SocialGo",
+			auds:        "SocialGo",
+		},
 	}
 
 	// Logger - using SugaredLogger
@@ -73,13 +82,16 @@ func main() {
 		logger.Errorw("Error: %v", err)
 	}
 
+	jwtAuthenticator := auth.NewJWTAuthenticator(cfg.auth.tokenSecret, cfg.auth.iss, cfg.auth.auds)
+
 	str := store.NewStorage(db)
 
 	app := &application{
-		config: cfg,
-		store:  str,
-		logger: logger,
-		mailer: mailer,
+		config:        cfg,
+		store:         str,
+		logger:        logger,
+		mailer:        mailer,
+		authenticator: jwtAuthenticator,
 	}
 
 	mux := app.mount()

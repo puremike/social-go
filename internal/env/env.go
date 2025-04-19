@@ -8,7 +8,7 @@ import (
 )
 
 type Config struct {
-	Port, DB_URI, SWAGGER_API_URL, SENDGRID_API_KEY, MAILTRAP_API_KEY, FROM_EMAIL, FRONTEND_URL string
+	Port, DB_URI, SWAGGER_API_URL, SENDGRID_API_KEY, MAILTRAP_API_KEY, FROM_EMAIL, FRONTEND_URL, AUTH_HEADER_USERNAME, AUTH_HEADER_PASSWORD, AUTH_TOKEN_SECRET string
 }
 
 func GetPort() Config {
@@ -53,13 +53,31 @@ func GetPort() Config {
 		log.Fatal("FROM_EMAIl NOT SET")
 	}
 
+	authHeader_user := os.Getenv("AUTH_HEADER_USERNAME")
+	if authHeader_user == "" {
+		log.Fatal("AUTH_HEADER_USERNAME NOT SET")
+	}
+
+	authHeader_pass := os.Getenv("AUTH_HEADER_PASSWORD")
+	if authHeader_pass == "" {
+		log.Fatal("AUTH_HEADER_PASSWORD NOT SET")
+	}
+
+	authTokenSecret := os.Getenv("AUTH_TOKEN_SECRET")
+	if authTokenSecret == "" {
+		log.Fatal("AUTH_TOKEN_SECRET NOT SET")
+	}
+
 	return Config{
 		Port:            port,
 		DB_URI:          db_uri,
 		SWAGGER_API_URL: api_url,
 		// SENDGRID_API_KEY: sendgrid_api_key,
-		MAILTRAP_API_KEY: mailTrap_api_key,
-		FROM_EMAIL:       fromEmail,
-		FRONTEND_URL:     frontendURl,
+		MAILTRAP_API_KEY:     mailTrap_api_key,
+		FROM_EMAIL:           fromEmail,
+		FRONTEND_URL:         frontendURl,
+		AUTH_HEADER_USERNAME: authHeader_user,
+		AUTH_HEADER_PASSWORD: authHeader_pass,
+		AUTH_TOKEN_SECRET:    authTokenSecret,
 	}
 }

@@ -4,55 +4,45 @@ import (
 	"net/http"
 )
 
-
 func (app *application) internalServer(w http.ResponseWriter, r *http.Request, err error) {
-	
-	data := map[string]string {
-        "status" : "error",
-        "message" : "Internal Server Error",
-		"error": err.Error(),
-    }
 
 	app.logger.Errorw("internal server error", "method", r.Method, "path", r.URL.Path, "error", err)
 
-	writeJSONError(w, http.StatusInternalServerError, data)
+	writeJSONError(w, http.StatusInternalServerError, "internal server error")
 }
 
 func (app *application) badRequest(w http.ResponseWriter, r *http.Request, err error) {
 
-	data := map[string]string {
-        "status" : "error",
-        "message" : "Bad Request",
-		"error" : err.Error(),
-    }
-	
 	app.logger.Warnw("bad request", "method", r.Method, "path", r.URL.Path, "error", err)
 
-	writeJSONError(w, http.StatusBadRequest, data)
+	writeJSONError(w, http.StatusBadRequest, err.Error())
 }
 
 func (app *application) notFound(w http.ResponseWriter, r *http.Request, err error) {
 
-	data := map[string]string {
-        "status" : "error",
-        "message" : "Resource not found",
-		"error" : err.Error(),
-    }
-
 	app.logger.Warnw("resource not found", "method", r.Method, "path", r.URL.Path, "error", err)
 
-	writeJSONError(w, http.StatusNotFound, data)
+	writeJSONError(w, http.StatusNotFound, "not found")
 }
 
-func (app *application) conflictError (w http.ResponseWriter, r *http.Request, err error) {
+func (app *application) conflictError(w http.ResponseWriter, r *http.Request, err error) {
 
-	data := map[string]string {
-		"status" : "error",
-		"message" : "conflict error",
-		"error" : err.Error(),
-	}
+	// data := map[string]string {
+	// 	"status" : "error",
+	// 	"message" : "conflict error",
+	// 	"error" : err.Error(),
+	// }
 
 	app.logger.Errorw("conflict error", "method", r.Method, "path", r.URL.Path, "err", err)
 
-	writeJSONError(w, http.StatusConflict, data)
-} 
+	writeJSONError(w, http.StatusConflict, err.Error())
+}
+
+func (app *application) unauthorizedError(w http.ResponseWriter, r *http.Request, err error) {
+	app.logger.Errorw("unauthorized error", "method", r.Method, "path", r.URL.Path, "error", err)
+
+	w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
+	http.Error(w, "Unauthorized", http.StatusUnauthorized)
+
+	writeJSONError(w, http.StatusConflict, "unauthorized error")
+}

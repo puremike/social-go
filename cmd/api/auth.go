@@ -5,7 +5,9 @@ import (
 	"encoding/hex"
 	"fmt"
 	"net/http"
+	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/puremike/social-go/internal/mailer"
 	"github.com/puremike/social-go/internal/store"
@@ -113,4 +115,57 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		app.internalServer(w, r, err)
 		return
 	}
+}
+
+func (app *application) createTokenHandler(w http.ResponseWriter, r *http.Request) {
+
+	type CreateEmailToken struct {
+		Email    string `json:"email" validate:"required,email,max=255"`
+		Password string `json:"password" validate:"required,min=6,max=72"`
+	}
+
+	var payload CreateEmailToken
+
+	if err := readJSON(w, r, &payload); err != nil {
+		app.badRequest(w, r, err)
+		return
+	}
+
+	if err := Validate.Struct(payload); err != nil {
+		app.badRequest(w, r, err)
+		return
+	}
+
+	user, err := app.store.Users.GetUserByEmail(r.Context(), payload.Email)
+
+	if err != nil {
+		app.unauthorizedError(w, r, err)
+		return
+	}
+
+	if err := user.Password.Compare(payload.Password); err != nil {
+		app.unauthorizedError(w, r, err)
+		return
+	}
+
+	// Generate the token --> Add claims
+	claims := jwt.MapClaims{
+		"sub": user.ID,
+		"exp": time.Now().Add(app.config.auth.tokenExp).Unix(),
+		"iat": time.Now().Unix(),
+		"nbf": time.Now().Unix(),
+		"iss": app.config.auth.iss,
+		"aud": app.config.auth.auds,
+	}
+
+	token, err := app.authenticator.GenerateToken(claims)
+	if err != nil {
+		app.internalServer(w, r, err)
+	}
+
+	if err := jsonResponse(w, http.StatusCreated, token); err != nil {
+		app.internalServer(w, r, err)
+		return
+	}
+
 }

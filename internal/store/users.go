@@ -41,6 +41,10 @@ func (p *Password) Set(password string) error {
 	return nil
 }
 
+func (p *Password) Compare(password string) error {
+	return bcrypt.CompareHashAndPassword(p.hash, []byte(password))
+}
+
 func (s *UserStore) Create(ctx context.Context, user *UserModel) error {
 	query := `INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id, created_at`
 
@@ -54,7 +58,7 @@ func (s *UserStore) Create(ctx context.Context, user *UserModel) error {
 }
 
 func (s *UserStore) GetUserByID(ctx context.Context, id int) (*UserModel, error) {
-	query := `SELECT id, username, email, password, created_at FROM users WHERE id = $1`
+	query := `SELECT id, username, email, password, created_at FROM users WHERE id = $1;`
 
 	user := &UserModel{}
 
@@ -232,4 +236,26 @@ func (s *UserStore) delete(ctx context.Context, tx *sql.Tx, id int) error {
 		return err
 	}
 	return nil
+}
+
+func (s *UserStore) GetUserByEmail(ctx context.Context, email string) (*UserModel, error) {
+
+	query := `SELECT id, username, email, password, created_at FROM users WHERE email = $1;`
+
+	user := &UserModel{}
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	err := s.db.QueryRowContext(ctx, query, email).Scan(&user.ID, &user.Username, &user.Email, &user.Password.hash, &user.CreatedAt)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrUserNotFound
+		}
+		return nil, err
+	}
+
+	return user, nil
+
 }

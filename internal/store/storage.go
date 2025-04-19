@@ -18,6 +18,7 @@ type Storage struct {
 		Activate(context.Context, string) error
 		Delete(context.Context, int) error
 		DeleteUserByID(context.Context, int) error
+		GetUserByEmail(context.Context, string) (*UserModel, error)
 	}
 
 	Followers interface {
