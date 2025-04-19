@@ -16,10 +16,6 @@ type userField struct {
 	Password string `json:"password" validate:"required"`
 }
 
-type followUser struct {
-	UserID int `json:"user_id"`
-}
-
 type userKey string
 
 const user_key userKey = "user"
@@ -117,16 +113,16 @@ func (app *application) deleteUserByIDHandler(w http.ResponseWriter, r *http.Req
 
 func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request) {
 	followerID := getUserFromContext(r)
+	followedID, err := strconv.Atoi(chi.URLParam(r, "id"))
 
-	var payload followUser
-	if err := readJSON(w, r, &payload); err != nil {
+	if err != nil {
 		app.badRequest(w, r, err)
 		return
 	}
 
 	ctx := r.Context()
 
-	if err := app.store.Followers.Follow(ctx, followerID.ID, payload.UserID); err != nil {
+	if err := app.store.Followers.Follow(ctx, followerID.ID, followedID); err != nil {
 		app.internalServer(w, r, err)
 		return
 	}
@@ -152,16 +148,18 @@ func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request
 //	@Router			/users/{id}/unfollow [put]
 
 func (app *application) unFollowUserHandler(w http.ResponseWriter, r *http.Request) {
-	unFollowerID := getUserFromContext(r)
-	var payload followUser
-	if err := readJSON(w, r, &payload); err != nil {
+	FollowerID := getUserFromContext(r)
+
+	unfollowedID, err := strconv.Atoi(chi.URLParam(r, "id"))
+
+	if err != nil {
 		app.badRequest(w, r, err)
 		return
 	}
 
 	ctx := r.Context()
 
-	if err := app.store.Followers.Unfollow(ctx, unFollowerID.ID, payload.UserID); err != nil {
+	if err := app.store.Followers.Unfollow(ctx, FollowerID.ID, unfollowedID); err != nil {
 		app.internalServer(w, r, err)
 		return
 	}

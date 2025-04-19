@@ -139,12 +139,12 @@ func (app *application) createTokenHandler(w http.ResponseWriter, r *http.Reques
 	user, err := app.store.Users.GetUserByEmail(r.Context(), payload.Email)
 
 	if err != nil {
-		app.unauthorizedError(w, r, err)
+		app.unauthorizedErrorOthers(w, r, err)
 		return
 	}
 
 	if err := user.Password.Compare(payload.Password); err != nil {
-		app.unauthorizedError(w, r, err)
+		app.unauthorizedErrorOthers(w, r, err)
 		return
 	}
 

@@ -34,6 +34,8 @@ var payload postField
 //	@Security		ApiKeyAuth
 //	@Router			/posts [post]
 func (app *application) createPost(w http.ResponseWriter, r *http.Request) {
+	user := getUserFromContext(r)
+
 	if err := readJSON(w, r, &payload); err != nil {
 		app.badRequest(w, r, err)
 		return
@@ -46,7 +48,7 @@ func (app *application) createPost(w http.ResponseWriter, r *http.Request) {
 	post := &model.PostModel{
 		Content: payload.Content,
 		Title:   payload.Title,
-		UserID:  payload.UserID,
+		UserID:  user.ID,
 		Tags:    payload.Tags,
 	}
 
