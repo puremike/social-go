@@ -40,6 +40,10 @@ type Storage struct {
 		GetCommentsByPostID(context.Context, int) ([]model.CommentModel, error)
 		Create(context.Context, *model.CommentModel) error
 	}
+
+	Roles interface {
+		GetByName(context.Context, string) (*Role, error)
+	}
 }
 
 var (
@@ -56,6 +60,7 @@ func NewStorage(db *sql.DB) Storage {
 		Posts:     &PostStore{db},
 		Comments:  &CommentStore{db},
 		Followers: &FollowerStore{db},
+		Roles:     &RoleStore{db},
 	}
 
 	return str

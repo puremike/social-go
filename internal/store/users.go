@@ -27,6 +27,8 @@ type UserModel struct {
 	Password  Password `json:"-"`
 	CreatedAt string   `json:"created_at"`
 	IsActive  bool     `json:"is_active"`
+	RoleId    int      `json:"role_id"`
+	Role      Role     `json:"role"`
 }
 
 func (p *Password) Set(password string) error {
@@ -46,9 +48,9 @@ func (p *Password) Compare(password string) error {
 }
 
 func (s *UserStore) Create(ctx context.Context, user *UserModel) error {
-	query := `INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id, created_at`
+	query := `INSERT INTO users (username, email, password, role_id) VALUES ($1, $2, $3, $4) RETURNING id, created_at`
 
-	err := s.db.QueryRowContext(ctx, query, user.Username, user.Email, user.Password.hash).Scan(&user.ID, &user.CreatedAt)
+	err := s.db.QueryRowContext(ctx, query, user.Username, user.Email, user.Password.hash, &user.RoleId).Scan(&user.ID, &user.CreatedAt)
 
 	if err != nil {
 		return err
@@ -58,14 +60,16 @@ func (s *UserStore) Create(ctx context.Context, user *UserModel) error {
 }
 
 func (s *UserStore) GetUserByID(ctx context.Context, id int) (*UserModel, error) {
-	query := `SELECT id, username, email, password, created_at FROM users WHERE id = $1;`
+	query := `SELECT users.id, username, email, password, created_at, roles.* FROM users 
+	JOIN roles ON (users.role_id = roles.id)
+	WHERE users.id = $1;`
 
 	user := &UserModel{}
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	err := s.db.QueryRowContext(ctx, query, id).Scan(&user.ID, &user.Username, &user.Email, &user.Password.hash, &user.CreatedAt)
+	err := s.db.QueryRowContext(ctx, query, id).Scan(&user.ID, &user.Username, &user.Email, &user.Password.hash, &user.CreatedAt, &user.Role.ID, &user.Role.Name, &user.Role.Level, &user.Role.Description)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

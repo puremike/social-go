@@ -5,10 +5,10 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/puremike/social-go/internal/store"
 )
 
 func (app *application) basicAuthMiddleware(next http.Handler) http.Handler {
@@ -75,12 +75,15 @@ func (app *application) AuthTokenMiddleware(next http.Handler) http.Handler {
 		}
 
 		claims, _ := jwtToken.Claims.(jwt.MapClaims)
-		userId, err := strconv.ParseInt(fmt.Sprintf("%.f", claims["sub"]), 10, 64)
 
-		if err != nil {
-			app.unauthorizedErrorOthers(w, r, err)
+		sub, ok := claims["sub"].(float64)
+		if !ok {
+			app.unauthorizedErrorOthers(w, r, fmt.Errorf("invalid sub claim type"))
 			return
 		}
+		// userId, err := strconv.ParseInt(fmt.Sprintf("%.f", claims["sub"]), 10, 64)
+
+		userId := int64(sub)
 
 		ctx := r.Context()
 
@@ -95,4 +98,41 @@ func (app *application) AuthTokenMiddleware(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func (app *application) checkPostOwnership(role string, next http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user := getUserFromContext(r)
+		post := getPostFromContext(r)
+
+		// check if it's the user post
+		if post.UserID == user.ID {
+			next.ServeHTTP(w, r)
+			return
+		}
+		ctx := r.Context()
+		// role precedence check
+		allowed, err := app.checkRolePrecedence(ctx, user, role)
+		if err != nil {
+			app.internalServer(w, r, err)
+			return
+		}
+
+		if !allowed {
+			app.forbiddenResponse(w, r)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (app *application) checkRolePrecedence(ctx context.Context, user *store.UserModel, roleName string) (bool, error) {
+
+	role, err := app.store.Roles.GetByName(ctx, roleName)
+	if err != nil {
+		return false, err
+	}
+
+	return user.Role.Level >= role.Level, nil
 }

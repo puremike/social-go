@@ -34,6 +34,7 @@ func (app *application) createUser(w http.ResponseWriter, r *http.Request) {
 	user := &store.UserModel{
 		Username: payload.Username,
 		Email:    payload.Email,
+		RoleId:   1,
 		// Password: payload.Password,
 	}
 

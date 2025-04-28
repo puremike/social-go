@@ -62,6 +62,7 @@ func generateUsers(num int) []*store.UserModel {
 		users[i] = &store.UserModel{
 			Username: usernames[i%len(usernames)] + fmt.Sprintf("%d", i),
 			Email:    usernames[i%len(usernames)] + fmt.Sprintf("%d", i) + "@email.com",
+			RoleId:   1,
 		}
 	}
 	return users

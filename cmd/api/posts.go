@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"strconv"
@@ -95,24 +96,9 @@ func (app *application) getAllPosts(w http.ResponseWriter, r *http.Request) {
 //	@Security		ApiKeyAuth
 //	@Router			/posts/{id} [get]
 func (app *application) getPostById(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(chi.URLParam(r, "id"))
-	if err != nil {
-		app.internalServer(w, r, err)
-		return
-	}
+	post := getPostFromContext(r)
 
-	ctx := r.Context()
-
-	post, err := app.store.Posts.GetPostByID(ctx, id)
-	if err != nil {
-		if errors.Is(err, store.ErrPostNotFound) {
-			app.notFound(w, r, err)
-			return
-		}
-		writeJSONError(w, http.StatusInternalServerError, err.Error())
-	}
-
-	comments, err := app.store.Comments.GetCommentsByPostID(ctx, id)
+	comments, err := app.store.Comments.GetCommentsByPostID(r.Context(), post.ID)
 	if err != nil {
 		app.internalServer(w, r, err)
 	}
@@ -225,4 +211,35 @@ func (app *application) updatePost(w http.ResponseWriter, r *http.Request) {
 		app.internalServer(w, r, err)
 		return
 	}
+}
+
+type postKey string
+
+const post_key postKey = "post"
+
+func (app *application) postContextMiddleWare(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id, err := strconv.Atoi(chi.URLParam(r, "id"))
+		if err != nil {
+			app.internalServer(w, r, err)
+			return
+		}
+		ctx := r.Context()
+		post, err := app.store.Posts.GetPostByID(ctx, id)
+		if err != nil {
+			if errors.Is(err, store.ErrPostNotFound) {
+				app.notFound(w, r, err)
+				return
+			}
+			writeJSONError(w, http.StatusInternalServerError, err.Error())
+		}
+
+		ctx = context.WithValue(ctx, post_key, post)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func getPostFromContext(r *http.Request) *model.PostModel {
+	post, _ := r.Context().Value(post_key).(*model.PostModel)
+	return post
 }

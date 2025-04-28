@@ -52,6 +52,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 	user := &store.UserModel{
 		Username: payload.Username,
 		Email:    payload.Email,
+		RoleId:   1,
 	}
 
 	ctx := r.Context()

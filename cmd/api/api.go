@@ -85,9 +85,10 @@ func (app *application) mount() http.Handler {
 			// r.Delete("/", app.deleteAllPosts)
 
 			r.Route("/{id}", func(r chi.Router) {
+				r.Use(app.postContextMiddleWare)
 				r.Get("/", app.getPostById)
-				r.Delete("/", app.deletePostByID)
-				r.Patch("/", app.updatePost)
+				r.Delete("/", app.checkPostOwnership("admin", app.deletePostByID))
+				r.Patch("/", app.checkPostOwnership("moderator", app.updatePost))
 			})
 		})
 
