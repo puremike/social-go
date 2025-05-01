@@ -11,6 +11,7 @@ import (
 	"github.com/puremike/social-go/internal/auth"
 	"github.com/puremike/social-go/internal/mailer"
 	"github.com/puremike/social-go/internal/store"
+	"github.com/puremike/social-go/internal/store/cache"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 	"go.uber.org/zap"
 )
@@ -21,6 +22,7 @@ type application struct {
 	logger        *zap.SugaredLogger
 	mailer        mailer.Client
 	authenticator auth.Authenticator
+	cacheStorage  cache.Storage
 }
 
 type config struct {
@@ -31,8 +33,14 @@ type config struct {
 	mail        mailConfig
 	frontEndURL string
 	auth        authConfig
+	redisConfig redisClientConfig
 }
 
+type redisClientConfig struct {
+	addr, pw string
+	db       int
+	enabled  bool
+}
 type authConfig struct {
 	username    string
 	password    string
@@ -98,7 +106,6 @@ func (app *application) mount() http.Handler {
 
 			r.Route("/{id}", func(r chi.Router) {
 				r.Use(app.AuthTokenMiddleware)
-				r.Use(app.userContextMiddleWare)
 				r.Get("/", app.getUserByID)
 				r.Delete("/", app.deleteUserByIDHandler)
 				r.Put("/follow", app.followUserHandler)

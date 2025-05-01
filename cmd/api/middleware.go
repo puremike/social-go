@@ -83,11 +83,11 @@ func (app *application) AuthTokenMiddleware(next http.Handler) http.Handler {
 		}
 		// userId, err := strconv.ParseInt(fmt.Sprintf("%.f", claims["sub"]), 10, 64)
 
-		userId := int64(sub)
+		userId := int(sub)
 
 		ctx := r.Context()
 
-		user, err := app.store.Users.GetUserByID(ctx, int(userId))
+		user, err := app.getUserFromCache(ctx, userId)
 
 		if err != nil {
 			app.unauthorizedErrorOthers(w, r, err)
@@ -98,6 +98,34 @@ func (app *application) AuthTokenMiddleware(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func (app *application) getUserFromCache(ctx context.Context, id int) (*store.UserModel, error) {
+
+	if !app.config.redisConfig.enabled {
+		return app.store.Users.GetUserByID(ctx, id)
+	}
+
+	app.logger.Infow("cache hit", "key", "id", id)
+	user, err := app.cacheStorage.Users.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	if user == nil {
+		app.logger.Infow("fetching from db", "id", id)
+		user, err := app.store.Users.GetUserByID(ctx, id)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := app.cacheStorage.Users.Set(ctx, user); err != nil {
+			return nil, err
+		}
+
+	}
+
+	return user, nil
 }
 
 func (app *application) checkPostOwnership(role string, next http.HandlerFunc) http.HandlerFunc {

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"strconv"
@@ -71,7 +70,27 @@ func (app *application) createUser(w http.ResponseWriter, r *http.Request) {
 //	@Router			/users/{id} [get]
 
 func (app *application) getUserByID(w http.ResponseWriter, r *http.Request) {
-	user := getUserFromContext(r)
+	// user := getUserFromContext(r)
+
+	// if err := jsonResponse(w, http.StatusOK, user); err != nil {
+	// 	app.internalServer(w, r, err)
+	// 	return
+	// }
+
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		app.internalServer(w, r, err)
+		return
+	}
+	ctx := r.Context()
+	user, err := app.getUserFromCache(ctx, id)
+	if err != nil {
+		if errors.Is(err, store.ErrUserNotFound) {
+			app.notFound(w, r, err)
+			return
+		}
+		writeJSONError(w, http.StatusInternalServerError, err.Error())
+	}
 
 	if err := jsonResponse(w, http.StatusOK, user); err != nil {
 		app.internalServer(w, r, err)
@@ -200,28 +219,6 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 		app.internalServer(w, r, err)
 		return
 	}
-}
-
-func (app *application) userContextMiddleWare(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		id, err := strconv.Atoi(chi.URLParam(r, "id"))
-		if err != nil {
-			app.internalServer(w, r, err)
-			return
-		}
-		ctx := r.Context()
-		user, err := app.store.Users.GetUserByID(ctx, id)
-		if err != nil {
-			if errors.Is(err, store.ErrUserNotFound) {
-				app.notFound(w, r, err)
-				return
-			}
-			writeJSONError(w, http.StatusInternalServerError, err.Error())
-		}
-
-		ctx = context.WithValue(ctx, user_key, user)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
 }
 
 func getUserFromContext(r *http.Request) *store.UserModel {

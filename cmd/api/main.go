@@ -3,11 +3,13 @@ package main
 import (
 	"time"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/puremike/social-go/internal/auth"
 	"github.com/puremike/social-go/internal/db"
 	"github.com/puremike/social-go/internal/env"
 	"github.com/puremike/social-go/internal/mailer"
 	"github.com/puremike/social-go/internal/store"
+	"github.com/puremike/social-go/internal/store/cache"
 	"go.uber.org/zap"
 )
 
@@ -62,6 +64,12 @@ func main() {
 			iss:         "SocialGo",
 			auds:        "SocialGo",
 		},
+		redisConfig: redisClientConfig{
+			addr:    envData.REDIS_ADDR,
+			pw:      envData.REDIS_PW,
+			db:      0,
+			enabled: true,
+		},
 	}
 
 	// Logger - using SugaredLogger
@@ -76,6 +84,17 @@ func main() {
 
 	logger.Info("Database connected successfully")
 
+	// cache
+
+	var rdb *redis.Client
+
+	if cfg.redisConfig.enabled {
+		rdb = cache.NewRedisClient(cfg.redisConfig.addr, cfg.redisConfig.pw, cfg.redisConfig.db)
+		defer rdb.Close()
+
+		logger.Info("Redis client connected successfully")
+	}
+
 	// mailer := mailer.NewSendGridMailer(cfg.mail.fromEmail, cfg.mail.sendgrid.apiKey)
 	mailer, err := mailer.NewMailTrapMailer(cfg.mail.fromEmail, cfg.mail.mailTrap.apiKey)
 	if err != nil {
@@ -85,6 +104,7 @@ func main() {
 	jwtAuthenticator := auth.NewJWTAuthenticator(cfg.auth.tokenSecret, cfg.auth.iss, cfg.auth.auds)
 
 	str := store.NewStorage(db)
+	cacheStorage := cache.NewRdbStorage(rdb)
 
 	app := &application{
 		config:        cfg,
@@ -92,6 +112,7 @@ func main() {
 		logger:        logger,
 		mailer:        mailer,
 		authenticator: jwtAuthenticator,
+		cacheStorage:  cacheStorage,
 	}
 
 	mux := app.mount()

@@ -55,15 +55,13 @@ var (
 )
 
 func NewStorage(db *sql.DB) Storage {
-	str := Storage{
+	return Storage{
 		Users:     &UserStore{db},
 		Posts:     &PostStore{db},
 		Comments:  &CommentStore{db},
 		Followers: &FollowerStore{db},
 		Roles:     &RoleStore{db},
 	}
-
-	return str
 }
 
 func withTX(db *sql.DB, ctx context.Context, fn func(*sql.Tx) error) error {

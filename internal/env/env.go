@@ -8,7 +8,7 @@ import (
 )
 
 type Config struct {
-	Port, DB_URI, SWAGGER_API_URL, SENDGRID_API_KEY, MAILTRAP_API_KEY, FROM_EMAIL, FRONTEND_URL, AUTH_HEADER_USERNAME, AUTH_HEADER_PASSWORD, AUTH_TOKEN_SECRET string
+	Port, DB_URI, SWAGGER_API_URL, SENDGRID_API_KEY, MAILTRAP_API_KEY, FROM_EMAIL, FRONTEND_URL, AUTH_HEADER_USERNAME, AUTH_HEADER_PASSWORD, AUTH_TOKEN_SECRET, REDIS_ADDR, REDIS_PW string
 }
 
 func GetPort() Config {
@@ -68,6 +68,16 @@ func GetPort() Config {
 		log.Fatal("AUTH_TOKEN_SECRET NOT SET")
 	}
 
+	redisAddr := os.Getenv("REDIS_ADDR")
+	if redisAddr == "" {
+		redisAddr = "localhost:6379"
+	}
+
+	redisPw := os.Getenv("REDIS_PW")
+	if redisPw == "" {
+		redisPw = ""
+	}
+
 	return Config{
 		Port:            port,
 		DB_URI:          db_uri,
@@ -79,5 +89,7 @@ func GetPort() Config {
 		AUTH_HEADER_USERNAME: authHeader_user,
 		AUTH_HEADER_PASSWORD: authHeader_pass,
 		AUTH_TOKEN_SECRET:    authTokenSecret,
+		REDIS_ADDR:           redisAddr,
+		REDIS_PW:             redisPw,
 	}
 }
