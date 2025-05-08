@@ -1,8 +1,13 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -18,11 +23,11 @@ import (
 
 type application struct {
 	config        config
-	store         store.Storage
+	store         *store.Storage
 	logger        *zap.SugaredLogger
 	mailer        mailer.Client
 	authenticator auth.Authenticator
-	cacheStorage  cache.Storage
+	cacheStorage  *cache.Storage
 }
 
 type config struct {
@@ -78,8 +83,7 @@ func (app *application) mount() http.Handler {
 	r.Use(middleware.Recoverer)
 
 	r.Route("/v1", func(r chi.Router) {
-		r.With(app.basicAuthMiddleware).
-			Get("/health", app.health)
+		r.Get("/health", app.health)
 
 		docURL := fmt.Sprintf("%s/swagger/doc.json", app.config.port)
 		r.Get("/swagger/*", httpSwagger.Handler(
@@ -144,6 +148,30 @@ func (app *application) start(mux http.Handler) error {
 		IdleTimeout:  time.Minute,
 	}
 
+	shutdown := make(chan error)
+
+	go func() {
+		quit := make(chan os.Signal, 1)
+		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+		s := <-quit
+		app.logger.Infow("shutdown signal", "signal", s.String())
+
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		shutdown <- srv.Shutdown(ctx)
+	}()
+
 	app.logger.Infow("Starting server on port:", "port", app.config.port, "env", app.config.environment)
-	return srv.ListenAndServe()
+
+	err := srv.ListenAndServe()
+	if !errors.Is(err, http.ErrServerClosed) {
+		return err
+	}
+
+	if err := <-shutdown; err != nil {
+		return err
+	}
+	return nil
 }

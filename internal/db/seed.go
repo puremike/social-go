@@ -25,7 +25,7 @@ var comments = []string{
 	"This is such an insightful post! I learned so much.", "I never thought about it this way. Thanks for sharing!", "Great tips! I’ll definitely try these out.", "This is exactly what I needed to read today.", "I have a different perspective, but this was still interesting.",
 	"Can you recommend any resources to learn more about this?", "This post inspired me to take action. Thank you!", "I’ve been struggling with this, and your advice really helped.", "Such a well-written and thought-provoking article.", "I love how practical and actionable your advice is.", "This is so relatable! Thanks for putting it into words.", "I’ve been looking for something like this. Great job!", "Your post made me rethink my approach. Much appreciated!", "I’m sharing this with my friends—it’s too good not to!", "This is a game-changer. Thank you for the insights!", "I’ve tried this before, and it really works. Highly recommend!", "Your writing style is so engaging. Keep it up!", "This is a fresh take on a topic I thought I knew well.", "I’m excited to implement these ideas. Thanks for the inspiration!", "This post is a goldmine of information. Well done!"}
 
-func Seed(store store.Storage) {
+func Seed(store *store.Storage) {
 	ctx := context.Background()
 
 	users := generateUsers(100)

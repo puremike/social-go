@@ -9,8 +9,8 @@ import (
 type mockCacheStore struct {
 }
 
-func NewMockCacheStore() Storage {
-	return Storage{
+func NewMockCacheStore() *Storage {
+	return &Storage{
 		Users: &mockCacheStore{},
 	}
 }

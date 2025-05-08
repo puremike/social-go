@@ -15,8 +15,8 @@ type Storage struct {
 	}
 }
 
-func NewRdbStorage(rdb *redis.Client) Storage {
-	return Storage{
+func NewRdbStorage(rdb *redis.Client) *Storage {
+	return &Storage{
 		Users: &UserStoreRdb{rdb},
 	}
 }

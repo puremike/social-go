@@ -6,8 +6,8 @@ import (
 	"time"
 )
 
-func NewMockStore() Storage {
-	return Storage{
+func NewMockStore() *Storage {
+	return &Storage{
 		Users: &MockUserStore{},
 	}
 }
