@@ -54,8 +54,8 @@ var (
 	QueryTimeoutDuration = 5 * time.Second
 )
 
-func NewStorage(db *sql.DB) Storage {
-	return Storage{
+func NewStorage(db *sql.DB) *Storage {
+	return &Storage{
 		Users:     &UserStore{db},
 		Posts:     &PostStore{db},
 		Comments:  &CommentStore{db},
