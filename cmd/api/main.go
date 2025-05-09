@@ -1,6 +1,8 @@
 package main
 
 import (
+	"expvar"
+	"runtime"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -32,6 +34,10 @@ import (
 //	@in							header
 //	@name						Authorization
 //	@description
+
+var envData env.Config
+
+const version = "1.1.0"
 
 func main() {
 
@@ -69,7 +75,7 @@ func main() {
 			addr:    envData.REDIS_ADDR,
 			pw:      envData.REDIS_PW,
 			db:      0,
-			enabled: true,
+			enabled: false,
 		},
 		rateLimiter: rateLimiterConfig{
 			requestsPerTimeFrame: 20,
@@ -133,6 +139,15 @@ func main() {
 		cacheStorage:  cacheStorage,
 		rateLimiter:   rateLimit,
 	}
+
+	// Metrics collected
+	expvar.NewString("version").Set(version)
+	expvar.Publish("database", expvar.Func(func() any {
+		return db.Stats()
+	}))
+	expvar.Publish("goroutines", expvar.Func(func() any {
+		return runtime.NumGoroutine()
+	}))
 
 	mux := app.mount()
 	logger.Fatal(app.start(mux))

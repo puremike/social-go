@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"expvar"
 	"fmt"
 	"net/http"
 	"os"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	"github.com/puremike/social-go/docs"
 	"github.com/puremike/social-go/internal/auth"
 	"github.com/puremike/social-go/internal/mailer"
@@ -92,12 +94,24 @@ func (app *application) mount() http.Handler {
 	r.Use(middleware.Recoverer)
 	r.Use(app.rateLimiterMiddleware)
 
+	// CORS middleware
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{envData.CORS_ALLOWED_ORIGIN},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300, // Maximum value not ignored by any major browsers
+	}))
+
 	// Set a timeout value on the request context, ctx, that will signal through ctx.Done() that the request has timed out and further processing should be canceled.
 
 	r.Use(middleware.Timeout(60 * time.Second))
 
 	r.Route("/v1", func(r chi.Router) {
-		r.With(app.basicAuthMiddleware).Get("/health", app.health)
+		r.Get("/health", app.health)
+
+		r.With(app.basicAuthMiddleware).Get("/debug/vars", expvar.Handler().ServeHTTP)
 
 		docURL := fmt.Sprintf("%s/swagger/doc.json", app.config.port)
 		r.Get("/swagger/*", httpSwagger.Handler(

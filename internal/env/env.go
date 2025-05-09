@@ -8,10 +8,10 @@ import (
 )
 
 type Config struct {
-	Port, DB_URI, SWAGGER_API_URL, SENDGRID_API_KEY, MAILTRAP_API_KEY, FROM_EMAIL, FRONTEND_URL, AUTH_HEADER_USERNAME, AUTH_HEADER_PASSWORD, AUTH_TOKEN_SECRET, REDIS_ADDR, REDIS_PW string
+	Port, DB_URI, SWAGGER_API_URL, SENDGRID_API_KEY, MAILTRAP_API_KEY, FROM_EMAIL, FRONTEND_URL, AUTH_HEADER_USERNAME, AUTH_HEADER_PASSWORD, AUTH_TOKEN_SECRET, REDIS_ADDR, REDIS_PW, CORS_ALLOWED_ORIGIN string
 }
 
-func GetPort() Config {
+func GetPort() *Config {
 
 	err := godotenv.Load()
 	if err != nil {
@@ -36,6 +36,11 @@ func GetPort() Config {
 	api_url := os.Getenv("SWAGGER_API_URL")
 	if api_url == "" {
 		api_url = "localhost:5100"
+	}
+
+	cors_allowed_origin := os.Getenv("CORS_ALLOWED_ORIGIN")
+	if cors_allowed_origin == "" {
+		cors_allowed_origin = "http://localhost:5170"
 	}
 
 	// sendgrid_api_key := os.Getenv("SENDGRID_API_KEY")
@@ -78,7 +83,7 @@ func GetPort() Config {
 		redisPw = ""
 	}
 
-	return Config{
+	return &Config{
 		Port:            port,
 		DB_URI:          db_uri,
 		SWAGGER_API_URL: api_url,
@@ -91,5 +96,6 @@ func GetPort() Config {
 		AUTH_TOKEN_SECRET:    authTokenSecret,
 		REDIS_ADDR:           redisAddr,
 		REDIS_PW:             redisPw,
+		CORS_ALLOWED_ORIGIN:  cors_allowed_origin,
 	}
 }
