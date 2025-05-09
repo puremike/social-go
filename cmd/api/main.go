@@ -8,6 +8,7 @@ import (
 	"github.com/puremike/social-go/internal/db"
 	"github.com/puremike/social-go/internal/env"
 	"github.com/puremike/social-go/internal/mailer"
+	"github.com/puremike/social-go/internal/ratelimiter"
 	"github.com/puremike/social-go/internal/store"
 	"github.com/puremike/social-go/internal/store/cache"
 	"go.uber.org/zap"
@@ -70,6 +71,11 @@ func main() {
 			db:      0,
 			enabled: true,
 		},
+		rateLimiter: rateLimiterConfig{
+			requestsPerTimeFrame: 20,
+			timeFrame:            5 * time.Second,
+			enabled:              true,
+		},
 	}
 
 	// Logger - using SugaredLogger
@@ -95,6 +101,18 @@ func main() {
 		logger.Info("Redis client connected successfully")
 	}
 
+	//Rate limiter
+	var rateLimit *ratelimiter.FixedWindowRateLimiter
+	if cfg.rateLimiter.enabled {
+		rateLimiter := ratelimiter.NewFixedWindowRateLimiter(
+			cfg.rateLimiter.requestsPerTimeFrame, cfg.rateLimiter.timeFrame,
+		)
+
+		rateLimit = rateLimiter
+
+		logger.Info("Rate limiter is enabled")
+	}
+
 	// mailer := mailer.NewSendGridMailer(cfg.mail.fromEmail, cfg.mail.sendgrid.apiKey)
 	mailer, err := mailer.NewMailTrapMailer(cfg.mail.fromEmail, cfg.mail.mailTrap.apiKey)
 	if err != nil {
@@ -113,6 +131,7 @@ func main() {
 		mailer:        mailer,
 		authenticator: jwtAuthenticator,
 		cacheStorage:  cacheStorage,
+		rateLimiter:   rateLimit,
 	}
 
 	mux := app.mount()

@@ -15,6 +15,7 @@ import (
 	"github.com/puremike/social-go/docs"
 	"github.com/puremike/social-go/internal/auth"
 	"github.com/puremike/social-go/internal/mailer"
+	"github.com/puremike/social-go/internal/ratelimiter"
 	"github.com/puremike/social-go/internal/store"
 	"github.com/puremike/social-go/internal/store/cache"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
@@ -28,6 +29,7 @@ type application struct {
 	mailer        mailer.Client
 	authenticator auth.Authenticator
 	cacheStorage  *cache.Storage
+	rateLimiter   *ratelimiter.FixedWindowRateLimiter
 }
 
 type config struct {
@@ -39,6 +41,7 @@ type config struct {
 	frontEndURL string
 	auth        authConfig
 	redisConfig redisClientConfig
+	rateLimiter rateLimiterConfig
 }
 
 type redisClientConfig struct {
@@ -53,6 +56,12 @@ type authConfig struct {
 	iss         string
 	auds        string
 	tokenExp    time.Duration
+}
+
+type rateLimiterConfig struct {
+	requestsPerTimeFrame int
+	timeFrame            time.Duration
+	enabled              bool
 }
 type mailConfig struct {
 	invitationExp time.Duration
@@ -81,9 +90,14 @@ func (app *application) mount() http.Handler {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(app.rateLimiterMiddleware)
+
+	// Set a timeout value on the request context, ctx, that will signal through ctx.Done() that the request has timed out and further processing should be canceled.
+
+	r.Use(middleware.Timeout(60 * time.Second))
 
 	r.Route("/v1", func(r chi.Router) {
-		r.Get("/health", app.health)
+		r.With(app.basicAuthMiddleware).Get("/health", app.health)
 
 		docURL := fmt.Sprintf("%s/swagger/doc.json", app.config.port)
 		r.Get("/swagger/*", httpSwagger.Handler(

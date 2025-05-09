@@ -6,19 +6,24 @@ import (
 	"testing"
 
 	"github.com/puremike/social-go/internal/auth"
+	"github.com/puremike/social-go/internal/ratelimiter"
 	"github.com/puremike/social-go/internal/store"
 	"github.com/puremike/social-go/internal/store/cache"
 	"go.uber.org/zap"
 )
 
-func newTestApplication(t *testing.T) *application {
+func newTestApplication(t *testing.T, cfg config) *application {
 	t.Helper()
+
+	//  rate limiter
+	rateLimiter := ratelimiter.NewFixedWindowRateLimiter(cfg.rateLimiter.requestsPerTimeFrame, cfg.rateLimiter.timeFrame)
 
 	return &application{
 		logger:        zap.NewNop().Sugar(),
 		store:         store.NewMockStore(),
 		cacheStorage:  cache.NewMockCacheStore(),
 		authenticator: &auth.TestAuthenticator{},
+		rateLimiter:   rateLimiter,
 	}
 }
 

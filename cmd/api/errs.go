@@ -25,18 +25,18 @@ func (app *application) notFound(w http.ResponseWriter, r *http.Request, err err
 	writeJSONError(w, http.StatusNotFound, "not found")
 }
 
-func (app *application) conflictError(w http.ResponseWriter, r *http.Request, err error) {
+// func (app *application) conflictError(w http.ResponseWriter, r *http.Request, err error) {
 
-	// data := map[string]string {
-	// 	"status" : "error",
-	// 	"message" : "conflict error",
-	// 	"error" : err.Error(),
-	// }
+// 	// data := map[string]string {
+// 	// 	"status" : "error",
+// 	// 	"message" : "conflict error",
+// 	// 	"error" : err.Error(),
+// 	// }
 
-	app.logger.Errorw("conflict error", "method", r.Method, "path", r.URL.Path, "err", err)
+// 	app.logger.Errorw("conflict error", "method", r.Method, "path", r.URL.Path, "err", err)
 
-	writeJSONError(w, http.StatusConflict, err.Error())
-}
+// 	writeJSONError(w, http.StatusConflict, err.Error())
+// }
 
 func (app *application) unauthorizedError(w http.ResponseWriter, r *http.Request, err error) {
 	app.logger.Errorw("unauthorized error", "method", r.Method, "path", r.URL.Path, "error", err)
@@ -57,4 +57,12 @@ func (app *application) forbiddenResponse(w http.ResponseWriter, r *http.Request
 	app.logger.Warnf("forbidden error", "method", r.Method, "path", r.URL.Path, "error")
 
 	writeJSONError(w, http.StatusForbidden, "forbidden error")
+}
+
+func (app *application) rateLimitExceededResponse(w http.ResponseWriter, r *http.Request, retryAfter string) {
+	app.logger.Warnw("rate limit exceeded", "method", r.Method, "path", r.URL.Path)
+
+	w.Header().Set("Retry-After", retryAfter)
+
+	writeJSONError(w, http.StatusTooManyRequests, "rate limit exceeded, retry after: "+retryAfter)
 }
